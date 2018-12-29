@@ -1,0 +1,43 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27428.2043
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MusicCat", "MusicCat\MusicCat.csproj", "{2EE85DEE-17D4-4EA4-BA9D-0CDE42BD4ECF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MusicCat-Service", "..\ServiceWrapper\MusicCat-Service.csproj", "{0C25595E-0ACB-44E5-B373-B0740367C567}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MusicCat-Console", "ConsoleWrapper\MusicCat-Console.csproj", "{588C694B-E2D8-4C9E-B783-91253485F44E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApiListener", "ApiListener\ApiListener.csproj", "{AB496196-EDC7-4372-AE73-C481B977E4AE}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2EE85DEE-17D4-4EA4-BA9D-0CDE42BD4ECF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2EE85DEE-17D4-4EA4-BA9D-0CDE42BD4ECF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2EE85DEE-17D4-4EA4-BA9D-0CDE42BD4ECF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2EE85DEE-17D4-4EA4-BA9D-0CDE42BD4ECF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0C25595E-0ACB-44E5-B373-B0740367C567}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0C25595E-0ACB-44E5-B373-B0740367C567}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0C25595E-0ACB-44E5-B373-B0740367C567}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0C25595E-0ACB-44E5-B373-B0740367C567}.Release|Any CPU.Build.0 = Release|Any CPU
+		{588C694B-E2D8-4C9E-B783-91253485F44E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{588C694B-E2D8-4C9E-B783-91253485F44E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{588C694B-E2D8-4C9E-B783-91253485F44E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{588C694B-E2D8-4C9E-B783-91253485F44E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AB496196-EDC7-4372-AE73-C481B977E4AE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AB496196-EDC7-4372-AE73-C481B977E4AE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AB496196-EDC7-4372-AE73-C481B977E4AE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AB496196-EDC7-4372-AE73-C481B977E4AE}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {52AA73D5-BA1C-4404-956E-D1C7A69232CC}
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,14 @@
+﻿namespace MusicCat
+{
+    public static class Listener
+    {
+        public static Config Config { get; set; } = Config.DefaultConfig;
+
+        public static void Start() => ApiListener.ApiListener.Start(Config.HttpPort);
+
+        public static void Stop() => ApiListener.ApiListener.HardStop();
+
+        public static string CallEndpoint(string name, string[] args) => ApiListener.ApiListener.Commands[name].Function(args);
+
+    }
+}
