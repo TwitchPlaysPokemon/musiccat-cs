@@ -1,6 +1,6 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 
 namespace ApiListener
@@ -20,11 +20,17 @@ namespace ApiListener
             Parameters = parameters;
             Description = description;
         }
-        public ApiCommand(string name, Action<IEnumerable<string>> action, IEnumerable<ApiParameter> parameters = null, string description = null) : this(name, args =>
+
+        public ApiCommand(string name, Action<IEnumerable<string>> action, IEnumerable<ApiParameter> parameters = null, string description = null)
+            : this(name, args =>
         {
             action(args);
             return null;
         }, parameters, description)
+        { }
+
+        public ApiCommand(string name, Func<IEnumerable<string>, object> func, IEnumerable<ApiParameter> parameters = null, string description = null)
+            : this(name, args => JsonConvert.SerializeObject(func(args)), parameters, description)
         { }
 
         public string BuildDocString()
