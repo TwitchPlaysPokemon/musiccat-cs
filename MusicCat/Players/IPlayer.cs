@@ -22,13 +22,13 @@ namespace MusicCat.Players
         /// <summary>
         /// Sets music player volume
         /// </summary>
-        /// <param name="level">0 to 1</param>
+        /// <param name="level">0 to 255</param>
         Task SetVolume(float level);
 
         /// <summary>
         /// Gets music player volume
         /// </summary>
-        /// <returns>0 to 1</returns>
+        /// <returns>0 to 255</returns>
         Task<float> GetVolume();
 
         /// <summary>

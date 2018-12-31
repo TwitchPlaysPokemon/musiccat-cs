@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Text;
+using static ApiListener.ApiLogger;
 
 namespace ApiListener
 {
@@ -17,6 +18,10 @@ namespace ApiListener
             {
                 throw new Exception("HTTPListener is not supported on this system.");
             }
+            if (Commands == null)
+            {
+                Init();
+            }
             var listenTo = $"http://localhost:{port}/";
             if (!HttpListener.Prefixes.Contains(listenTo))
             {
@@ -26,20 +31,30 @@ namespace ApiListener
             {
                 HttpListener.Start();
                 Listen();
+                Log(Info($"Listening for HTTP connections on {listenTo}"));
             }
         }
 
-        public static void Stop() => HttpListener.Stop();
+        public static void Stop()
+        {
+            Log(Info("Stopping."));
+            HttpListener.Stop();
+        }
 
-        public static void HardStop() => HttpListener.Abort();
+        public static void HardStop()
+        {
+            Log(Info("Abandoning all connections and stopping."));
+            HttpListener.Abort();
+        }
 
         private static void Listen() => HttpListener.BeginGetContext(HttpListenHandler, HttpListener);
 
         private static void HttpListenHandler(IAsyncResult result)
         {
+            HttpListenerContext context = null;
             try
             {
-                var context = HttpListener.EndGetContext(result);
+                context = HttpListener.EndGetContext(result);
 
                 string body = null;
                 if (context.Request.HasEntityBody)
@@ -105,8 +120,11 @@ namespace ApiListener
                     output.Write(responseBuffer, 0, responseBuffer.Length);
                     output.Close();
                 }
+                Log(Debug($"{context.Request.RawUrl} => {response}"));
             }
-            catch { }
+            catch (Exception e) {
+                Log(Critical($"{context?.Request?.RawUrl ?? "(Error getting accessed URL)"} => {e.Message}"));
+            }
             finally
             {
                 Listen();
@@ -115,13 +133,20 @@ namespace ApiListener
 
         private static IEnumerable<ApiProvider> apiProviders;
 
-        public static Dictionary<string, ApiCommand> Commands = new Dictionary<string, ApiCommand>(StringComparer.OrdinalIgnoreCase);
+        public static Dictionary<string, ApiCommand> Commands;
 
         private static ApiCommand Documentation;
 
-        static ApiListener()
+        private static List<Action<ApiLogMessage>> LogHandlers = new List<Action<ApiLogMessage>>();
+
+        private static Action<ApiLogMessage> Log = message => LogHandlers.ForEach(handler => handler(message));
+
+        public static void AttachLogger(Action<ApiLogMessage> logger) => LogHandlers.Add(logger);
+
+        public static void Init()
         {
-            apiProviders = ReflectiveEnumerator.GetEnumerableOfType<ApiProvider>();
+            apiProviders = ReflectiveEnumerator.GetEnumerableOfType<ApiProvider>(Log);
+            Commands = new Dictionary<string, ApiCommand>(StringComparer.OrdinalIgnoreCase);
             Documentation = new ApiCommand("Help", args => string.Join("\n", Commands.Select(c => c.Value.BuildDocString())), new List<ApiParameter>(), "Lists available commands (This message)");
             Commands["Help"] = Documentation;
             foreach (var provider in apiProviders)

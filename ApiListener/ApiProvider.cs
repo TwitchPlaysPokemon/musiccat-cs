@@ -11,7 +11,15 @@ namespace ApiListener
     /// </summary>
     public abstract class ApiProvider
     {
+
         public abstract IEnumerable<ApiCommand> Commands { get; }
+
+        protected Action<ApiLogMessage> Log;
+
+        public ApiProvider(Action<ApiLogMessage> logger)
+        {
+            Log = logger;
+        }
 
         private class ApiMissingParameterError : ApiError
         {
