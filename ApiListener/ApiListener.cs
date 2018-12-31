@@ -92,6 +92,11 @@ namespace ApiListener
                     {
                         response = Documentation.Function(null);
                     }
+                    else if (urlParams[0] == "favicon.ico")
+                    {
+                        context.Response.StatusCode = 404;
+                        response = "Not found.";
+                    }
                     else
                     {
                         command = urlParams[0];
@@ -120,7 +125,7 @@ namespace ApiListener
                     output.Write(responseBuffer, 0, responseBuffer.Length);
                     output.Close();
                 }
-                Log(Debug($"{context.Request.RawUrl} => {response}"));
+                Log(Debug($"{context.Request.RawUrl} => {context.Response.StatusCode}: {response}"));
             }
             catch (Exception e) {
                 Log(Critical($"{context?.Request?.RawUrl ?? "(Error getting accessed URL)"} => {e.Message}"));
