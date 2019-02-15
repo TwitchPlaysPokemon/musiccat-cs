@@ -70,8 +70,8 @@ namespace MusicCat.Players
 		/// <param name="keywords">keywords to search</param>
 		/// <param name="requiredTag">any required tag</param>
 		/// <param name="cutoff">the cutoff value, with 1.0 being a perfect match</param>
-		/// <returns>a list of tuples containing the name, the game, the id and the match ratio</returns>
-	    Task<List<(Song song, string game, float match)>> Search(string[] keywords, string requiredTag = null,
+		/// <returns>a list of tuples containing the song and the match ratio</returns>
+	    Task<List<(Song song, float match)>> Search(string[] keywords, string requiredTag = null,
 		    float cutoff = 0.3f);
     }
 }

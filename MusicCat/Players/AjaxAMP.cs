@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using MusicCat.Metadata;
 using static MusicCat.Metadata.Metadata;
@@ -77,11 +76,11 @@ namespace MusicCat.Players
         public Task Stop() => Post("stop");
 
 #pragma warning disable 1998
-		public async Task<List<(Song song, string game, float match)>> Search(string[] keywords,
+		public async Task<List<(Song song, float match)>> Search(string[] keywords,
 		    string requiredTag = null,
 		    float cutoff = 0.3f)
 	    {
-		    var results = new List<(Song song, string game, float match)>();
+		    var results = new List<(Song song, float match)>();
 
 			Console.WriteLine(keywords.Length);
 			Console.WriteLine(string.Join(", ", keywords));
@@ -92,8 +91,7 @@ namespace MusicCat.Players
 						continue;
 
 			    string[] haystack = song.title.ToLowerInvariant().Split(' ');
-			    string[] haystack2 = MetadataList.FirstOrDefault(x => x.songs.Contains(song))?.title.ToLowerInvariant()
-				    .Split(' ');
+				string[] haystack2 = song.game.title.ToLowerInvariant().Split(' ');
 
 			    float ratio = 0;
 			    foreach (string keyword in keywords)
@@ -112,8 +110,7 @@ namespace MusicCat.Players
 			    ratio /= keywords.Length;
 
 			    if (ratio > cutoff)
-				    results.Add((song, MetadataList.FirstOrDefault(x => x.songs.Contains(song))?.title
-					    .ToLowerInvariant(), ratio));
+				    results.Add((song, ratio));
 		    }
 			Console.WriteLine(results.Count);
 		    return results.OrderByDescending(x => x.match).Take(5).ToList();

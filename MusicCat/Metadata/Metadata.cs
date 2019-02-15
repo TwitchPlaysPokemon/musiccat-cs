@@ -8,7 +8,6 @@ namespace MusicCat.Metadata
 {
 	public class Metadata
 	{
-		public static List<MetadataObj> MetadataList = new List<MetadataObj>();
 		public static List<Song> SongList = new List<Song>();
 
 		public static void LoadMetadata()
@@ -32,9 +31,8 @@ namespace MusicCat.Metadata
 						{
 							result = deserializer.Deserialize(reader);
 						}
-						MetadataObj obj = ParseMetadata(result, Path.Combine(Listener.Config.MusicBaseDir, directory));
-						MetadataList.Add(obj);
-						SongList.AddRange(obj.songs);
+						List<Song> songs = ParseMetadata(result, Path.Combine(Listener.Config.MusicBaseDir, directory));
+						SongList.AddRange(songs);
 					}
 					catch (Exception e)
 					{
@@ -44,14 +42,14 @@ namespace MusicCat.Metadata
 			}
 		}
 
-		private static MetadataObj ParseMetadata(object metadata, string path)
+		private static List<Song> ParseMetadata(object metadata, string path)
 		{
-			MetadataObj obj = new MetadataObj
+			List<Song> result = new List<Song>();
+			Game obj = new Game
 			{
 				id = GetValue<string>(metadata, "id"),
 				title = GetValue<string>(metadata, "title"),
 				year = GetValue<string>(metadata, "year"),
-				songs = new List<Song>()
 			};
 			try
 			{
@@ -87,6 +85,7 @@ namespace MusicCat.Metadata
 					id = GetValue<string>(songObj, "id"),
 					title = GetValue<string>(songObj, "title"),
 					path = Path.Combine(path, GetValue<string>(songObj, "path")),
+					game = obj
 				};
 				try
 				{
@@ -134,8 +133,8 @@ namespace MusicCat.Metadata
 							{
 								try
 								{
-									string result = GetValue<string>(songObj, "ends");
-									string[] resultStrings = result.Split(':');
+									string ends = GetValue<string>(songObj, "ends");
+									string[] resultStrings = ends.Split(':');
 									int resultInt = int.Parse(resultStrings[0]) * 60 + int.Parse(resultStrings[1]);
 									song.ends = new[] {float.Parse(resultInt.ToString())};
 								}
@@ -148,9 +147,9 @@ namespace MusicCat.Metadata
 					}
 				}
 
-				obj.songs.Add(song);
+				result.Add(song);
 			}
-			return obj;
+			return result;
 		}
 
 		private static T GetValue<T>(object metadata, string key)
