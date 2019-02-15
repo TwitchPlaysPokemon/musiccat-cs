@@ -1,4 +1,6 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+using MusicCat.Metadata;
 
 namespace MusicCat.Players
 {
@@ -37,6 +39,12 @@ namespace MusicCat.Players
         /// <param name="filename">Absolute path of file</param>
         Task PlayFile(string filename);
 
+		/// <summary>
+		/// Tells the music player to play the song with a specific ID
+		/// </summary>
+		/// <param name="id">ID of the song to play</param>
+	    Task PlayID(string id);
+
         /// <summary>
         /// Moves playhead
         /// </summary>
@@ -48,5 +56,22 @@ namespace MusicCat.Players
         /// </summary>
         /// <returns>0 to 1</returns>
         Task<float> GetPosition();
+
+		/// <summary>
+		/// Gets the number of songs in the library
+		/// </summary>
+		/// <param name="category">The category of the song, must be parseable into the SongType enum</param>
+		/// <returns></returns>
+		Task<int> Count(string category = null);
+
+		/// <summary>
+		/// Searches through the metadata to provide songs with the closest match
+		/// </summary>
+		/// <param name="keywords">keywords to search</param>
+		/// <param name="requiredTag">any required tag</param>
+		/// <param name="cutoff">the cutoff value, with 1.0 being a perfect match</param>
+		/// <returns>a list of tuples containing the name, the game, the id and the match ratio</returns>
+	    Task<List<(string name, string game, string id, float match, SongType[] types)>> Search(string[] keywords, string requiredTag = null,
+		    float cutoff = 0.3f);
     }
 }

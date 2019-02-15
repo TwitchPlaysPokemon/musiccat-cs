@@ -117,7 +117,7 @@ namespace ApiListener
                     context.Response.StatusCode = e is ApiError ? 400 : 500;
                 }
                 responseBuffer = Encoding.UTF8.GetBytes(response);
-                context.Response.ContentType = "text/plain";
+                context.Response.ContentType = "application/json; charset=utf-8";
                 // Get a response stream and write the response to it.
                 context.Response.ContentLength64 = responseBuffer.Length;
                 using (System.IO.Stream output = context.Response.OutputStream)

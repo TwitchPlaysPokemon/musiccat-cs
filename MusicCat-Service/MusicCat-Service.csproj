@@ -32,6 +32,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.12.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -54,8 +57,13 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\ApiListener\ApiListener.csproj">
+      <Project>{AB496196-EDC7-4372-AE73-C481B977E4AE}</Project>
+      <Name>ApiListener</Name>
+    </ProjectReference>
     <ProjectReference Include="..\MusicCat\MusicCat.csproj">
       <Project>{2ee85dee-17d4-4ea4-ba9d-0cde42bd4ecf}</Project>
       <Name>MusicCat</Name>
