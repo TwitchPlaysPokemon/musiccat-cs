@@ -77,11 +77,11 @@ namespace MusicCat.Players
         public Task Stop() => Post("stop");
 
 #pragma warning disable 1998
-		public async Task<List<(string name, string game, string id, float match, SongType[] types)>> Search(string[] keywords,
+		public async Task<List<(Song song, string game, float match)>> Search(string[] keywords,
 		    string requiredTag = null,
 		    float cutoff = 0.3f)
 	    {
-		    var results = new List<(string name, string game, string id, float match, SongType[] types)>();
+		    var results = new List<(Song song, string game, float match)>();
 
 			Console.WriteLine(keywords.Length);
 			Console.WriteLine(string.Join(", ", keywords));
@@ -112,8 +112,8 @@ namespace MusicCat.Players
 			    ratio /= keywords.Length;
 
 			    if (ratio > cutoff)
-				    results.Add((song.title, MetadataList.FirstOrDefault(x => x.songs.Contains(song))?.title
-					    .ToLowerInvariant(), song.id, ratio, song.types));
+				    results.Add((song, MetadataList.FirstOrDefault(x => x.songs.Contains(song))?.title
+					    .ToLowerInvariant(), ratio));
 		    }
 			Console.WriteLine(results.Count);
 		    return results.OrderByDescending(x => x.match).Take(5).ToList();
