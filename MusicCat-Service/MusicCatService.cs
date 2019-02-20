@@ -43,11 +43,10 @@ namespace ServiceWrapper
 	        }
 	        catch (Exception e)
 	        {
-		        if (logStream != null && logWriter != null)
-		        {
-			        logWriter.WriteLine($"{Enum.GetName(typeof(ApiLogLevel), ApiLogLevel.Critical)?.ToUpper()}: Failed to load metadata. Stop.");
-			        logWriter.WriteLine($"{Enum.GetName(typeof(ApiLogLevel), ApiLogLevel.Critical)?.ToUpper()}: {e.Message}{Environment.NewLine}{e.StackTrace}");
-			        logWriter.WriteLine($"{Enum.GetName(typeof(ApiLogLevel), ApiLogLevel.Critical)?.ToUpper()}: Inner exception: {e.InnerException.Message ?? "none"}{Environment.NewLine}{e.InnerException.StackTrace ?? "none"}");
+		        if (logStream != null)
+				{
+					logWriter?.WriteLine(
+						$"{Enum.GetName(typeof(ApiLogLevel), ApiLogLevel.Critical)?.ToUpper()}: Failed to load metadata. Exception: {e.Message}{Environment.NewLine}{e.StackTrace}");
 				}
 				Environment.Exit(1);
 	        }
