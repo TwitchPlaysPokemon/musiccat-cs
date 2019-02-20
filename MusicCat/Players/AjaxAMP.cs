@@ -1,8 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
+using ApiListener;
 using MusicCat.Metadata;
 using static MusicCat.Metadata.Metadata;
 
@@ -43,33 +47,88 @@ namespace MusicCat.Players
 		public async Task<int> Count(string category = null) => category != null ? SongList.Count(x => x.types.Contains((SongType)Enum.Parse(typeof(SongType), category))) : SongList.Count;
 #pragma warning restore CS1998
 
+		public async Task Launch()
+		{
+			if (Process.GetProcessesByName("Winamp").Length > 0)
+				return;
+
+			if (string.IsNullOrEmpty(Listener.Config.WinampPath))
+				throw new ApiError("Winamp path in the config is not set.");
+
+			if (!File.Exists(Listener.Config.WinampPath))
+				throw new ApiError("There is no file at the given path.");
+
+			Process process = new Process {StartInfo = {FileName = Listener.Config.WinampPath}};
+			process.Start();
+
+			bool flag = false;
+			while (!flag)
+			{
+				try
+				{
+					await Task.Delay(1000);
+					string active = (await GetPosition()).ToString(CultureInfo.InvariantCulture);
+					if (!string.IsNullOrWhiteSpace(active))
+						flag = true;
+				}
+				catch { }
+			}
+		}
+
 		public Task Pause() => Post("pause");
 
         public Task Play() => Post("play");
 
-        /// <summary>
-        /// Tells the music player to play a file
-        /// </summary>
-        /// <param name="filename">Absolute path of file (Drive Letter must be uppercased. AjaxAMP is very very picky)</param>
-        /// <returns></returns>
-        public Task PlayFile(string filename) => Post("playfile", new Dictionary<string, string>
-        {
-	        ["filename"] = filename,
-	        ["title"] = SongList.FirstOrDefault(x => x.path == filename)?.path ?? filename
-        });
+		/// <summary>
+		/// Tells the music player to play a file
+		/// </summary>
+		/// <param name="filename">Absolute path of file (Drive Letter must be uppercased. AjaxAMP is very very picky)</param>
+		/// <returns></returns>
+		public async Task PlayFile(string filename)
+		{
+			await Post("playfile", new Dictionary<string, string>
+			{
+				["filename"] = filename,
+				["title"] = SongList.FirstOrDefault(x => x.path == filename)?.path ?? filename
+			});
 
-	    /// <summary>
+			float position1 = await GetPosition();
+
+			await Task.Delay(1000);
+
+			float position2 = await GetPosition();
+
+			if (position1 == position2)
+				throw new ApiError("Winamp not playing");
+		}
+
+		/// <summary>
 	    /// Tells the music player to play the song with the specific id
 	    /// </summary>
 	    /// <param name="id">Id of the song to play</param>
 	    /// <returns></returns>
-	    public Task PlayID(string id) => Post("playid", new Dictionary<string, string>
-	    {
-		    ["filename"] = SongList.First(x => x.id == id).path,
-		    ["title"] = SongList.First(x => x.id == id).title
-	    });
+	    public async Task PlayID(string id)
+		{
+			Song song = SongList.First(x => x.id == id);
+			if (song?.path == null)
+				throw new ApiError("Song has no path");
+			await Post("playfile", new Dictionary<string, string>
+			{
+				["filename"] = SongList.First(x => x.id == id).path,
+				["title"] = SongList.First(x => x.id == id).title
+			});
 
-        public Task SetPosition(float percent) => Post("setposition", new Dictionary<string, string> { ["pos"] = percent.ToString() });
+			float position1 = await GetPosition();
+
+			await Task.Delay(1000);
+
+			float position2 = await GetPosition();
+
+			if (position1 == position2)
+				throw new ApiError("Winamp not playing");
+		}
+
+		public Task SetPosition(float percent) => Post("setposition", new Dictionary<string, string> { ["pos"] = percent.ToString() });
 
         public Task SetVolume(float level) => Post("setvolume", new Dictionary<string, string> { ["level"] = level.ToString() });
 
@@ -82,13 +141,13 @@ namespace MusicCat.Players
 	    {
 		    var results = new List<(Song song, float match)>();
 
-			Console.WriteLine(keywords.Length);
-			Console.WriteLine(string.Join(", ", keywords));
 		    foreach (Song song in SongList)
 		    {
 				if (requiredTag != null)
 					if (song.tags == null || !song.tags.Contains(requiredTag))
 						continue;
+
+				if (song.path == null) continue;
 
 			    string[] haystack = song.title.ToLowerInvariant().Split(' ');
 				string[] haystack2 = song.game.title.ToLowerInvariant().Split(' ');
@@ -112,7 +171,6 @@ namespace MusicCat.Players
 			    if (ratio > cutoff)
 				    results.Add((song, ratio));
 		    }
-			Console.WriteLine(results.Count);
 		    return results.OrderByDescending(x => x.match).Take(5).ToList();
 	    }
 #pragma warning restore 1998

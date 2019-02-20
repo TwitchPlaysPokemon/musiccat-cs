@@ -30,7 +30,7 @@ namespace ApiListener
         { }
 
         public ApiCommand(string name, Func<IEnumerable<string>, object> func, IEnumerable<ApiParameter> parameters = null, string description = null)
-            : this(name, args => JsonConvert.SerializeObject(func(args), new Newtonsoft.Json.Converters.StringEnumConverter()), parameters, description)
+            : this(name, args => JsonConvert.SerializeObject(func(args), new SingleOrArrayEnumConverter()), parameters, description)
         { }
 
         public string BuildDocString()

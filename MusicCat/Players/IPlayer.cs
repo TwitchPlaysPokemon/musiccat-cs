@@ -5,7 +5,13 @@ using MusicCat.Metadata;
 namespace MusicCat.Players
 {
     public interface IPlayer
-    {
+	{
+		/// <summary>
+		/// Launches Winamp.
+		/// </summary>
+		/// <returns></returns>
+		Task Launch();
+
         /// <summary>
         /// Tells the music player to play the current track
         /// </summary>

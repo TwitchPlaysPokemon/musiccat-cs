@@ -11,11 +11,38 @@ namespace ConsoleWrapper
     class Program
     {
         const ApiLogLevel displayLogLevel = ApiLogLevel.Debug;
+		private static FileStream logStream = null;
+		private static StreamWriter logWriter = null;
 
-        static void Main(string[] args)
+		private static Action<ApiLogMessage> logger = m =>
+		{
+			if (m.Level >= displayLogLevel)
+			{
+				switch (m.Level)
+				{
+					case ApiLogLevel.Error:
+					case ApiLogLevel.Critical:
+						Console.ForegroundColor = ConsoleColor.Red;
+						break;
+					case ApiLogLevel.Warning:
+						Console.ForegroundColor = ConsoleColor.Yellow;
+						break;
+					case ApiLogLevel.Debug:
+					case ApiLogLevel.Info:
+						Console.ForegroundColor = ConsoleColor.White;
+						break;
+				}
+
+				Console.WriteLine($"{Enum.GetName(typeof(ApiLogLevel), m.Level).ToUpper()}: {m.Message}");
+				if (logStream != null)
+					logWriter?.WriteLine($"{Enum.GetName(typeof(ApiLogLevel), m.Level)?.ToUpper()}: {m.Message}");
+
+				Console.ForegroundColor = ConsoleColor.White;
+			}
+		};
+
+		static void Main(string[] args)
         {
-	        FileStream logStream = null;
-	        StreamWriter logWriter = null;
             var monitor = new object();
 	        string configJson = File.ReadAllText("MusicCatConfig.json");
 	        try
@@ -28,38 +55,23 @@ namespace ConsoleWrapper
 					logWriter = new StreamWriter(logStream);
 		        }
 	        }
-	        catch
+	        catch (Exception e)
 	        {
-				Console.WriteLine($"{Enum.GetName(typeof(ApiLogLevel), ApiLogLevel.Warning).ToUpper()}: Failed to de-serialize config, using default config instead.");
+				logger(new ApiLogMessage($"Failed to de-serialize config, using default config instead. Exception: {e.Message}{Environment.NewLine}{e.StackTrace}", ApiLogLevel.Warning));
 		        Listener.Config = Config.DefaultConfig;
 	        }
 
 	        try
 	        {
-		        Metadata.LoadMetadata();
+		        Metadata.LoadMetadata(logger);
 	        }
 	        catch (Exception e)
 	        {
-		        if (logStream != null && logWriter != null)
-		        {
-			        logWriter.WriteLine($"{Enum.GetName(typeof(ApiLogLevel), ApiLogLevel.Critical).ToUpper()}: Failed to load metadata. Stop.");
-			        logWriter.WriteLine($"{Enum.GetName(typeof(ApiLogLevel), ApiLogLevel.Critical).ToUpper()}: {e.Message}{Environment.NewLine}{e.StackTrace}");
-			        logWriter.WriteLine($"{Enum.GetName(typeof(ApiLogLevel), ApiLogLevel.Critical).ToUpper()}: Inner exception: {e.InnerException.Message ?? "none"}{Environment.NewLine}{e.InnerException.StackTrace ?? "none"}");
-				}
-		        Console.WriteLine($"{Enum.GetName(typeof(ApiLogLevel), ApiLogLevel.Critical).ToUpper()}: Failed to load metadata. Stop.");
-				Console.WriteLine($"{Enum.GetName(typeof(ApiLogLevel), ApiLogLevel.Critical).ToUpper()}: {e.Message}{Environment.NewLine}{e.StackTrace}");
-		        Console.WriteLine($"{Enum.GetName(typeof(ApiLogLevel), ApiLogLevel.Critical).ToUpper()}: Inner exception: {e.InnerException.Message ?? "none"}{Environment.NewLine}{e.InnerException.StackTrace ?? "none"}");
+				logger(new ApiLogMessage($"Failed to load metadata. Exception: {e.Message}{Environment.NewLine}{e.StackTrace}", ApiLogLevel.Critical));
 				Environment.Exit(1);
 			}
-			Listener.AttachLogger(m =>
-            {
-	            if (m.Level >= displayLogLevel)
-	            {
-		            Console.WriteLine($"{Enum.GetName(typeof(ApiLogLevel), m.Level).ToUpper()}: {m.Message}");
-					if (logStream != null)
-						logWriter?.WriteLine($"{Enum.GetName(typeof(ApiLogLevel), m.Level)?.ToUpper()}: {m.Message}");
-	            }
-            });
+
+			Listener.AttachLogger(logger);
             Console.CancelKeyPress += (sender, cancelArgs) => Monitor.Pulse(monitor);
             Listener.Start();
             lock (monitor)

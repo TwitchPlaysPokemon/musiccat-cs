@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using ApiListener;
 using YamlDotNet.Serialization;
 
 namespace MusicCat.Metadata
@@ -10,7 +11,7 @@ namespace MusicCat.Metadata
 	{
 		public static List<Song> SongList = new List<Song>();
 
-		public static void LoadMetadata()
+		public static void LoadMetadata(Action<ApiLogMessage> logger = null)
 		{
 			foreach (string directory in Directory.GetDirectories(Listener.Config.MusicBaseDir))
 			{
@@ -20,7 +21,7 @@ namespace MusicCat.Metadata
 					{
 						if (!filename.EndsWith(".yaml"))
 							continue;
-
+						logger?.Invoke(new ApiLogMessage($"Loading {Path.Combine(Path.Combine(Listener.Config.MusicBaseDir, directory), filename)}", ApiLogLevel.Debug));
 						FileStream inputStream =
 							new FileStream(
 								Path.Combine(Path.Combine(Listener.Config.MusicBaseDir, directory), filename),
@@ -32,11 +33,22 @@ namespace MusicCat.Metadata
 							result = deserializer.Deserialize(reader);
 						}
 						List<Song> songs = ParseMetadata(result, Path.Combine(Listener.Config.MusicBaseDir, directory));
+
+						foreach (Song song in songs)
+						{
+							if (File.Exists(song.path)) continue;
+							logger?.Invoke(new ApiLogMessage(
+								$"Song file at {song.path} does not exist, the song will not play",
+								ApiLogLevel.Warning));
+							song.path = null;
+						}
+
 						SongList.AddRange(songs);
 					}
 					catch (Exception e)
 					{
-						throw new Exception($"Exception decoding file: {filename} in {directory}", e);
+						logger?.Invoke(new ApiLogMessage($"Exception processing metadata file {Path.Combine(Path.Combine(Listener.Config.MusicBaseDir, directory), filename)}: {e.Message}{Environment.NewLine}{e.StackTrace}" +
+														$"{Environment.NewLine}Attempting to continue", ApiLogLevel.Critical));
 					}
 				}
 			}
