@@ -48,12 +48,17 @@ namespace ConsoleWrapper
 	        try
 	        {
 		        Listener.Config = JsonConvert.DeserializeObject<Config>(configJson);
-		        if (Listener.Config.LogDir != null &&
+		        if (!string.IsNullOrWhiteSpace(Listener.Config.LogDir) &&
 		            !File.Exists(Path.Combine(Listener.Config.LogDir, "MusicCatLog.txt")))
 		        {
 			        logStream = File.Create(Path.Combine(Listener.Config.LogDir, "MusicCatLog.txt"));
 					logWriter = new StreamWriter(logStream);
 		        }
+				else if (!string.IsNullOrWhiteSpace(Listener.Config.LogDir))
+				{
+					logStream = File.OpenWrite(Path.Combine(Listener.Config.LogDir, "MusicCatLog.txt"));
+					logWriter = new StreamWriter(logStream);
+				}
 	        }
 	        catch (Exception e)
 	        {
