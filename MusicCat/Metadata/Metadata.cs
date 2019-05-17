@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Linq;
+using YamlDotNet.Serialization;
 
 namespace MusicCat.Metadata
 {
@@ -9,9 +10,26 @@ namespace MusicCat.Metadata
 		public List<Song> songs;
 		public string id { get; set; }
 		public string title { get; set; }
-		public string series { get; set; }
+		public string series { get; set; } = null;
 		public string year { get; set; }
+
+		[YamlIgnore]
 		public string[] platform { get; set; }
-		public bool is_fanwork { get; set; }
+
+		[YamlMember(Alias = "platform", ApplyNamingConventions = false)]
+		public dynamic platformFake
+		{
+			get => platform;
+			set
+			{
+				Type type = value.GetType();
+				if (type.IsArray && type.GetElementType() == typeof(string))
+					platform = ((object[]) value).Select(obj => obj.ToString()).ToArray();
+				else
+					platform = new string[] {value.ToString()};
+			}
+		}
+
+		public bool is_fanwork { get; set; } = false;
 	}
 }
