@@ -4,7 +4,6 @@ using System.ServiceProcess;
 using ApiListener;
 using MusicCat;
 using MusicCat.Metadata;
-using Newtonsoft.Json;
 
 namespace ServiceWrapper
 {
@@ -19,23 +18,11 @@ namespace ServiceWrapper
 
 		protected override void OnStart(string[] args)
         {
-	        string configJson = File.ReadAllText("MusicCatConfig.json");
 	        FileStream logStream = null;
 	        StreamWriter logWriter = null;
 			try
 			{
-				Listener.Config = JsonConvert.DeserializeObject<Config>(configJson);
-				if (!string.IsNullOrWhiteSpace(Listener.Config.LogDir) &&
-					!File.Exists(Path.Combine(Listener.Config.LogDir, "MusicCatLog.txt")))
-				{
-					logStream = File.Create(Path.Combine(Listener.Config.LogDir, "MusicCatLog.txt"));
-					logWriter = new StreamWriter(logStream);
-				}
-				else if (!string.IsNullOrWhiteSpace(Listener.Config.LogDir))
-				{
-					logStream = File.OpenWrite(Path.Combine(Listener.Config.LogDir, "MusicCatLog.txt"));
-					logWriter = new StreamWriter(logStream);
-				}
+				Listener.Config = Config.ParseConfig(out logStream, out logWriter);
 			}
 			catch
 			{
@@ -44,7 +31,7 @@ namespace ServiceWrapper
 
 	        try
 	        {
-		        Metadata.LoadMetadata();
+		        MetadataStore.LoadMetadata();
 	        }
 	        catch (Exception e)
 	        {

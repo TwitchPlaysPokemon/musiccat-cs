@@ -4,7 +4,6 @@ using System.Threading;
 using ApiListener;
 using MusicCat;
 using MusicCat.Metadata;
-using Newtonsoft.Json;
 
 namespace ConsoleWrapper
 {
@@ -44,21 +43,9 @@ namespace ConsoleWrapper
 		static void Main(string[] args)
         {
             var monitor = new object();
-	        string configJson = File.ReadAllText("MusicCatConfig.json");
 	        try
 	        {
-		        Listener.Config = JsonConvert.DeserializeObject<Config>(configJson);
-		        if (!string.IsNullOrWhiteSpace(Listener.Config.LogDir) &&
-		            !File.Exists(Path.Combine(Listener.Config.LogDir, "MusicCatLog.txt")))
-		        {
-			        logStream = File.Create(Path.Combine(Listener.Config.LogDir, "MusicCatLog.txt"));
-					logWriter = new StreamWriter(logStream);
-		        }
-				else if (!string.IsNullOrWhiteSpace(Listener.Config.LogDir))
-				{
-					logStream = File.OpenWrite(Path.Combine(Listener.Config.LogDir, "MusicCatLog.txt"));
-					logWriter = new StreamWriter(logStream);
-				}
+				Listener.Config = Config.ParseConfig(out logStream, out logWriter);
 	        }
 	        catch (Exception e)
 	        {
@@ -68,7 +55,7 @@ namespace ConsoleWrapper
 
 	        try
 	        {
-		        Metadata.LoadMetadata(logger);
+		        MetadataStore.LoadMetadata(logger);
 	        }
 	        catch (Exception e)
 	        {
