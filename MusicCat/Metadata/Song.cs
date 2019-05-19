@@ -15,6 +15,7 @@ namespace MusicCat.Metadata
 		[JsonProperty("types", ItemConverterType = typeof(StringEnumConverter))]
 		[YamlIgnore]
 		public SongType[] types { get; set; }
+		[JsonIgnore]
 		[YamlMember(Alias = "type", ApplyNamingConventions = false)]
 		public dynamic typeFake
 		{
@@ -48,6 +49,7 @@ namespace MusicCat.Metadata
 
 		[YamlIgnore]
 		public float[] ends { get; set; } = null;
+		[JsonIgnore]
 		[YamlMember(Alias = "ends", ApplyNamingConventions = false)]
 		public dynamic endsFake
 		{

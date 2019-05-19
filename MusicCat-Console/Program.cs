@@ -33,7 +33,7 @@ namespace ConsoleWrapper
 			}
 
 			Listener.AttachLogger(Log);
-            Console.CancelKeyPress += (sender, cancelArgs) => Monitor.Pulse(monitor);
+            System.Console.CancelKeyPress += (sender, cancelArgs) => Monitor.Pulse(monitor);
             Listener.Start();
             lock (monitor)
             {

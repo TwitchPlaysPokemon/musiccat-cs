@@ -8,6 +8,7 @@ namespace MusicCat
     {
         public int HttpPort { get; set; }
         public string MusicBaseDir { get; set; }
+		public string SongFileDir { get; set; } = null;
 		public string LogDir { get; set; }
 		public string WinampPath { get; set; }
         public Players.AjaxAMPConfig AjaxAMPConfig { get; set; }

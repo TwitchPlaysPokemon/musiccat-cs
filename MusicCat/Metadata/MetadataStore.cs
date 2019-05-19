@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Timers;
 using ApiListener;
 using YamlDotNet.Serialization;
 
@@ -11,6 +12,7 @@ namespace MusicCat.Metadata
 	public class MetadataStore
 	{
 		private static FileSystemWatcher watcher;
+		private static Timer timer;
 
 		public static List<Song> SongList = new List<Song>();
 		private static Action<ApiLogMessage> logger;
@@ -21,18 +23,25 @@ namespace MusicCat.Metadata
 		{
 			if (watcher == null)
 			{
-				watcher = new FileSystemWatcher(Listener.Config.MusicBaseDir);
-				watcher.NotifyFilter = NotifyFilters.LastWrite;
-				watcher.Changed += OnChanged;
+				MetadataStore.logger = logger;
+				watcher = new FileSystemWatcher(Listener.Config.MusicBaseDir)
+				{
+					NotifyFilter = NotifyFilters.Size,
+					IncludeSubdirectories = true
+				};
+				watcher.Changed += OnFileChanged;
+				watcher.EnableRaisingEvents = true;
 			}
 			IDeserializer deserializer = new DeserializerBuilder().Build();
-			foreach (string directory in Directory.EnumerateDirectories(Listener.Config.MusicBaseDir))
+			foreach (string directory in Directory.EnumerateDirectories(Listener.Config.MusicBaseDir, "*", SearchOption.AllDirectories))
 			{
-				foreach (string filename in Directory.EnumerateFiles(Path.Combine(Listener.Config.MusicBaseDir, directory), "*.yaml", SearchOption.AllDirectories))
+				foreach (string filename in Directory.EnumerateFiles(Path.Combine(Listener.Config.MusicBaseDir, directory), "*.yaml"))
 				{
 					try
 					{
-						logger?.Invoke(new ApiLogMessage($"Loading {Path.Combine(Path.Combine(Listener.Config.MusicBaseDir, directory), filename)}", ApiLogLevel.Debug));
+						logger?.Invoke(new ApiLogMessage(
+							$"Loading {Path.Combine(Path.Combine(Listener.Config.MusicBaseDir, directory), filename)}",
+							ApiLogLevel.Debug));
 						FileStream inputStream =
 							new FileStream(
 								Path.Combine(Path.Combine(Listener.Config.MusicBaseDir, directory), filename),
@@ -42,7 +51,10 @@ namespace MusicCat.Metadata
 						{
 							result = deserializer.Deserialize<Metadata>(reader);
 						}
-						List<Song> songs = ParseMetadata(result, Path.Combine(Listener.Config.MusicBaseDir, directory));
+
+						string path = Path.Combine(Listener.Config.SongFileDir ?? Listener.Config.MusicBaseDir, directory);
+
+						List<Song> songs = ParseMetadata(result, path);
 
 						foreach (Song song in songs)
 						{
@@ -51,9 +63,19 @@ namespace MusicCat.Metadata
 								$"Song file at {song.path} does not exist, the song will not play",
 								ApiLogLevel.Warning));
 							song.path = null;
+							Song duplicate = SongList.FirstOrDefault(x => x.id == song.id);
+							if (duplicate != null)
+								throw new DuplicateSongException(
+									$"ID {song.id} has been declared twice, in songs {song.title} and {duplicate.title}");
 						}
 
 						SongList.AddRange(songs);
+					}
+					catch (DuplicateSongException e)
+					{
+						logger?.Invoke(new ApiLogMessage($"Exception processing metadata file {Path.Combine(Path.Combine(Listener.Config.MusicBaseDir, directory), filename)}: {e.Message}{Environment.NewLine}{e.StackTrace}" +
+														$"{Environment.NewLine}Cannot continue", ApiLogLevel.Critical));
+						break;
 					}
 					catch (Exception e)
 					{
@@ -64,21 +86,30 @@ namespace MusicCat.Metadata
 			}
 		});
 
-		private static void OnChanged(object sender, FileSystemEventArgs e)
+		private static void OnFileChanged(object sender, FileSystemEventArgs e)
 		{
-			bool flag = false;
-			try
+			if (timer == null)
 			{
-				using (FileStream inputStream = File.Open(e.FullPath, FileMode.Open, FileAccess.Read, FileShare.None))
-					if (inputStream.Length > 0)
-						flag = true;
+				timer = new Timer(600000);
+				timer.Elapsed += OnTimerElapsed;
+				timer.AutoReset = false;
+				timer.Start();
 			}
-			catch (Exception)
+			else
 			{
-				return;
+				lock (timer)
+				{
+					timer.Stop();
+					timer.Start();
+				}
 			}
-			if (flag)
-				LoadMetadata(logger);
+		}
+
+		private static void OnTimerElapsed(object sender, ElapsedEventArgs e)
+		{
+			LoadMetadata(logger);
+			timer.Dispose();
+			timer = null;
 		}
 
 		private static List<Song> ParseMetadata(Metadata metadata, string path)
@@ -105,9 +136,11 @@ namespace MusicCat.Metadata
 		{
 			if (watcher != null)
 			{
-				watcher.Changed -= OnChanged;
+				watcher.Changed -= OnFileChanged;
 				watcher.Dispose();
 			}
+
+			timer?.Dispose();
 		}
 	}
 }

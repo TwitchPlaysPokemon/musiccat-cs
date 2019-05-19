@@ -44,14 +44,15 @@ namespace MusicCat.Players
 
 		public async Task<float> GetVolume() => float.Parse(await Get("getvolume"));
 
-		private async Task<ConsoleStatus> GetStatus()
+		private async Task<console> GetStatus()
 		{
-			ConsoleStatus status;
-			XmlSerializer serializer = new XmlSerializer(typeof(ConsoleStatus));
+			console status;
+			XmlSerializer serializer = new XmlSerializer(typeof(console));
 			string serialized = await Get("consolestatus.xml");
+			Console.WriteLine(serialized);
 			using (StringReader reader = new StringReader(serialized))
 			{
-				status = (ConsoleStatus) serializer.Deserialize(reader);
+				status = (console) serializer.Deserialize(reader);
 			}
 			return status;
 		}
@@ -105,16 +106,19 @@ namespace MusicCat.Players
 
 			float position1 = await GetPosition();
 
-			await Task.Delay(200);
+			await Task.Delay(400);
 
 			float position2 = await GetPosition();
 
 			if (position1 == position2)
 				throw new ApiError("Failed to play given file.");
 
-			ConsoleStatus status = await GetStatus();
+			await Task.Delay(1000);
+
+			console status = await GetStatus();
+			Console.WriteLine(status.title);
 			if (status.filename != filename)
-				throw new ApiError("Failed to play given file.");
+				throw new ApiError($"Failed to play given file. Filename: {status.title}");
 		}
 
 		/// <summary>
@@ -159,10 +163,10 @@ namespace MusicCat.Players
 						string keyword2 = keyword.ToLowerInvariant();
 
 						float subratio1 = haystack.Select(word => keyword2.LevenshteinRatio(word)).Concat(new float[] { 0 }).Max();
-						float subratio2 = haystack2?.Select(word => keyword2.LevenshteinRatio(word))
-							.Concat(new float[] { 0 }).Max() ?? 0;
+						float subratio2 = haystack2.Select(word => keyword2.LevenshteinRatio(word))
+							.Concat(new float[] {0}).Max();
 
-						float subratio = (float)Math.Max(subratio1, subratio2);
+						float subratio = Math.Max(subratio1, subratio2);
 						if (subratio > 0.7)
 							ratio += subratio;
 					}
