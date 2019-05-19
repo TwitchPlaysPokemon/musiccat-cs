@@ -10,16 +10,25 @@ namespace MusicCat.Metadata
 {
 	public class MetadataStore
 	{
+		private static FileSystemWatcher watcher;
+
 		public static List<Song> SongList = new List<Song>();
+		private static Action<ApiLogMessage> logger;
 
 		public static Task<int> Count(string category = null) => Task.Run(() => category != null ? SongList.Count(x => x.types.Contains((SongType)Enum.Parse(typeof(SongType), category))) : SongList.Count);
 
 		public static async void LoadMetadata(Action<ApiLogMessage> logger = null) => await Task.Run(() =>
 		{
+			if (watcher == null)
+			{
+				watcher = new FileSystemWatcher(Listener.Config.MusicBaseDir);
+				watcher.NotifyFilter = NotifyFilters.LastWrite;
+				watcher.Changed += OnChanged;
+			}
 			IDeserializer deserializer = new DeserializerBuilder().Build();
 			foreach (string directory in Directory.EnumerateDirectories(Listener.Config.MusicBaseDir))
 			{
-				foreach (string filename in Directory.EnumerateFiles(Path.Combine(Listener.Config.MusicBaseDir, directory), "*.yaml"))
+				foreach (string filename in Directory.EnumerateFiles(Path.Combine(Listener.Config.MusicBaseDir, directory), "*.yaml", SearchOption.AllDirectories))
 				{
 					try
 					{
@@ -55,6 +64,23 @@ namespace MusicCat.Metadata
 			}
 		});
 
+		private static void OnChanged(object sender, FileSystemEventArgs e)
+		{
+			bool flag = false;
+			try
+			{
+				using (FileStream inputStream = File.Open(e.FullPath, FileMode.Open, FileAccess.Read, FileShare.None))
+					if (inputStream.Length > 0)
+						flag = true;
+			}
+			catch (Exception)
+			{
+				return;
+			}
+			if (flag)
+				LoadMetadata(logger);
+		}
+
 		private static List<Song> ParseMetadata(Metadata metadata, string path)
 		{
 			List<Song> result = new List<Song>();
@@ -73,6 +99,15 @@ namespace MusicCat.Metadata
 				result.Add(song);
 			}
 			return result;
+		}
+
+		~MetadataStore()
+		{
+			if (watcher != null)
+			{
+				watcher.Changed -= OnChanged;
+				watcher.Dispose();
+			}
 		}
 	}
 }

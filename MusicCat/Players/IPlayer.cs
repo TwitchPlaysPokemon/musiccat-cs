@@ -7,7 +7,7 @@ namespace MusicCat.Players
     public interface IPlayer
 	{
 		/// <summary>
-		/// Launches Winamp.
+		/// Launches the music player.
 		/// </summary>
 		/// <returns></returns>
 		Task Launch();

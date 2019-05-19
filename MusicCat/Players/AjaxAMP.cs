@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
+using System.Xml.Serialization;
 using ApiListener;
 using MusicCat.Metadata;
 using static MusicCat.Metadata.MetadataStore;
@@ -43,7 +44,19 @@ namespace MusicCat.Players
 
 		public async Task<float> GetVolume() => float.Parse(await Get("getvolume"));
 
-		public Task<int> Count(string category = null) => Count(category);
+		private async Task<ConsoleStatus> GetStatus()
+		{
+			ConsoleStatus status;
+			XmlSerializer serializer = new XmlSerializer(typeof(ConsoleStatus));
+			string serialized = await Get("consolestatus.xml");
+			using (StringReader reader = new StringReader(serialized))
+			{
+				status = (ConsoleStatus) serializer.Deserialize(reader);
+			}
+			return status;
+		}
+
+		public Task<int> Count(string category = null) => MetadataStore.Count(category);
 
 		public async Task Launch()
 		{
@@ -87,17 +100,21 @@ namespace MusicCat.Players
 			await Post("playfile", new Dictionary<string, string>
 			{
 				["filename"] = filename,
-				["title"] = SongList.FirstOrDefault(x => x.path == filename)?.path ?? filename
+				["title"] = filename
 			});
 
 			float position1 = await GetPosition();
 
-			await Task.Delay(1000);
+			await Task.Delay(200);
 
 			float position2 = await GetPosition();
 
 			if (position1 == position2)
-				throw new ApiError("Winamp not playing");
+				throw new ApiError("Failed to play given file.");
+
+			ConsoleStatus status = await GetStatus();
+			if (status.filename != filename)
+				throw new ApiError("Failed to play given file.");
 		}
 
 		/// <summary>
@@ -110,20 +127,7 @@ namespace MusicCat.Players
 			Song song = SongList.First(x => x.id == id);
 			if (song?.path == null)
 				throw new ApiError("Song has no path");
-			await Post("playfile", new Dictionary<string, string>
-			{
-				["filename"] = SongList.First(x => x.id == id).path,
-				["title"] = SongList.First(x => x.id == id).title
-			});
-
-			float position1 = await GetPosition();
-
-			await Task.Delay(1000);
-
-			float position2 = await GetPosition();
-
-			if (position1 == position2)
-				throw new ApiError("Winamp not playing");
+			await PlayFile(song.path);
 		}
 
 		public Task SetPosition(float percent) => Post("setposition", new Dictionary<string, string> { ["pos"] = percent.ToString() });
