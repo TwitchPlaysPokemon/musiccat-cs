@@ -40,11 +40,11 @@ namespace MusicCat.Metadata
 					try
 					{
 						logger?.Invoke(new ApiLogMessage(
-							$"Loading {Path.Combine(Path.Combine(Listener.Config.MusicBaseDir, directory), filename)}",
+							$"Loading {Path.Combine(Listener.Config.MusicBaseDir, directory, filename)}",
 							ApiLogLevel.Debug));
 						FileStream inputStream =
 							new FileStream(
-								Path.Combine(Path.Combine(Listener.Config.MusicBaseDir, directory), filename),
+								Path.Combine(Listener.Config.MusicBaseDir, directory, filename),
 								FileMode.Open);
 						Metadata result;
 						using (StreamReader reader = new StreamReader(inputStream))
@@ -67,9 +67,8 @@ namespace MusicCat.Metadata
 							if (duplicate != null)
 								throw new DuplicateSongException(
 									$"ID {song.id} has been declared twice, in songs {song.title} and {duplicate.title}");
+							SongList.Add(song);
 						}
-
-						SongList.AddRange(songs);
 					}
 					catch (DuplicateSongException e)
 					{
@@ -85,6 +84,171 @@ namespace MusicCat.Metadata
 				}
 			}
 		});
+
+		public static bool VerifyMetadata(bool showUnused, Action<ApiLogMessage> logger = null)
+		{
+			bool ret = true;
+			IDeserializer deserializer = new DeserializerBuilder().Build();
+			List<string> files = new List<string>();
+			List<string> processed = new List<string>();
+			foreach (string directory in Directory.EnumerateDirectories(Listener.Config.MusicBaseDir, "*",
+				SearchOption.AllDirectories))
+			{
+				if (Listener.Config.SongFileDir != null)
+				{
+					if (!directory.Contains(".git") && directory.ToLowerInvariant() != "other" &&
+					    !directory.ToLowerInvariant().Contains("other\\") &&
+					    !directory.ToLowerInvariant().Contains("other/"))
+					{
+						files.AddRange(Directory
+							.EnumerateFiles(Path.Combine(Listener.Config.SongFileDir, directory), "*")
+							.Where(filename => !filename.EndsWith(".pos") && !filename.EndsWith("sflib") && !filename.EndsWith("sf2lib")
+							                   && !filename.EndsWith(".sth")) //exclude song libraries
+							.Select(filename => Path.Combine(Listener.Config.SongFileDir, directory, filename)));
+					}
+				}
+				else if (!directory.Contains(".git") && directory.ToLowerInvariant() != "other" &&
+				         !directory.ToLowerInvariant().Contains("other\\") &&
+				         !directory.ToLowerInvariant().Contains("other/"))
+					files.AddRange(Directory
+						.EnumerateFiles(Path.Combine(Listener.Config.MusicBaseDir, directory), "*")
+						.Where(filename => !filename.EndsWith(".yaml") && !filename.EndsWith(".pos") && !filename.EndsWith("sflib")
+						                   && !filename.EndsWith("sf2lib") && !filename.EndsWith(".sth"))
+						.Select(filename => Path.Combine(Listener.Config.MusicBaseDir, directory, filename)));
+
+				foreach (string filename in Directory.EnumerateFiles(
+					Path.Combine(Listener.Config.MusicBaseDir, directory), "*.yaml"))
+				{
+					try
+					{
+						FileStream inputStream =
+							new FileStream(Path.Combine(Listener.Config.MusicBaseDir, directory, filename),
+								FileMode.Open);
+						Metadata result;
+						using (StreamReader reader = new StreamReader(inputStream))
+						{
+							result = deserializer.Deserialize<Metadata>(reader);
+						}
+
+						string path = Path.Combine(Listener.Config.SongFileDir ?? Listener.Config.MusicBaseDir,
+							directory);
+						string current = Path.Combine(Listener.Config.MusicBaseDir, directory, filename);
+
+						List<Song> songs = ParseMetadata(result, path);
+
+						Game game = songs.First().game;
+
+						if (game.id == null)
+						{
+							logger?.Invoke(new ApiLogMessage($"Missing Game ID in file {current}",
+								ApiLogLevel.Warning));
+							ret = false;
+						}
+
+						if (game.title == null)
+						{
+							logger?.Invoke(new ApiLogMessage($"Missing Game Title in file {current}",
+								ApiLogLevel.Warning));
+							ret = false;
+						}
+
+						if (game.platform == null || game.platform.Length == 0)
+						{
+							logger?.Invoke(new ApiLogMessage($"Missing Game Platform in file {current}",
+								ApiLogLevel.Warning));
+							ret = false;
+						}
+
+						if (game.year == null)
+						{
+							logger?.Invoke(new ApiLogMessage($"Missing Game Year in file {current}",
+								ApiLogLevel.Warning));
+							ret = false;
+						}
+
+						foreach (Song song in songs)
+						{
+							if (song.id == null)
+							{
+								logger?.Invoke(new ApiLogMessage($"Missing Song ID in file {current}",
+									ApiLogLevel.Warning));
+								ret = false;
+							}
+
+							if (song.title == null)
+							{
+								logger?.Invoke(new ApiLogMessage($"Missing Song Title in file {current}",
+									ApiLogLevel.Warning));
+								ret = false;
+							}
+
+							if (song.types == null || song.types.Length == 0)
+							{
+								logger?.Invoke(new ApiLogMessage($"Missing Song Type in file {current}",
+									ApiLogLevel.Warning));
+								ret = false;
+							}
+
+							if (song.path != null && processed.Contains(song.path))
+							{
+								logger?.Invoke(new ApiLogMessage(
+									$"Duplicate reference to song file in file {current}. Path: {song.path}",
+									ApiLogLevel.Warning));
+								ret = false;
+							}
+
+							if (song.path != null && !files.Contains(song.path))
+							{
+								logger?.Invoke(new ApiLogMessage(
+									$"Song file referenced in file {current} is missing. Path: {song.path}",
+									ApiLogLevel.Warning));
+								ret = false;
+							}
+
+							if (song.path == null)
+							{
+								logger?.Invoke(new ApiLogMessage(
+									$"Missing Song Path in file {current}",
+									ApiLogLevel.Warning));
+								ret = false;
+							}
+
+							if (song.path != null && !processed.Contains(song.path) && files.Contains(song.path))
+								processed.Add(song.path);
+							if (song.id == null) continue;
+							Song duplicate = SongList.FirstOrDefault(x => x.id == song.id);
+							if (duplicate != null)
+							{
+								logger?.Invoke(new ApiLogMessage(
+									$"ID {song.id} has been declared twice, in songs {song.title} and {duplicate.title}",
+									ApiLogLevel.Warning));
+								ret = false;
+							}
+
+							SongList.Add(song);
+						}
+					}
+					catch (Exception e)
+					{
+						logger?.Invoke(new ApiLogMessage(
+							$"Exception encountered in file {Path.Combine(Listener.Config.MusicBaseDir, directory, filename)}:" +
+							$"{Environment.NewLine}{e.Message}{Environment.NewLine}{e.StackTrace}{Environment.NewLine}Skipping file.",
+							ApiLogLevel.Critical));
+					}
+				}
+			}
+
+			if (!showUnused) return ret;
+
+			IEnumerable<string> unused = files.Where(x => !processed.Contains(x));
+			foreach (string path in unused)
+			{
+				ret = false;
+				logger?.Invoke(new ApiLogMessage($"Song file at {path} is unused.", ApiLogLevel.Warning));
+			}
+
+			return ret;
+		}
 
 		private static void OnFileChanged(object sender, FileSystemEventArgs e)
 		{

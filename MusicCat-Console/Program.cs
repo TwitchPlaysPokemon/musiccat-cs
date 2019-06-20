@@ -22,6 +22,15 @@ namespace ConsoleWrapper
 		        Listener.Config = Config.DefaultConfig;
 	        }
 
+	        if ((args.Length == 1 || args.Length == 2) && args[0].ToLowerInvariant().Trim() == "verify")
+	        {
+		        bool showUnused = args.Length == 2 && args[1].ToLowerInvariant().Trim() == "--showunused";
+				bool result = MetadataStore.VerifyMetadata(showUnused, Log);
+				if (result)
+					Log(new ApiLogMessage("No errors.", ApiLogLevel.Info));
+				return;
+	        }
+
 	        try
 	        {
 		        MetadataStore.LoadMetadata(Log);

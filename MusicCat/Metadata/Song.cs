@@ -48,7 +48,8 @@ namespace MusicCat.Metadata
 		}
 
 		[YamlIgnore]
-		public float[] ends { get; set; } = null;
+		public float? ends { get; set; }
+
 		[JsonIgnore]
 		[YamlMember(Alias = "ends", ApplyNamingConventions = false)]
 		public dynamic endsFake
@@ -56,29 +57,9 @@ namespace MusicCat.Metadata
 			get => ends;
 			set
 			{
-				Type type = value.GetType();
-				if (type == typeof(float[]))
-				{
-					ends = value;
-				}
-				else if (type == typeof(int[]))
-				{
-					ends = ((int[]) value).Select(x => float.Parse(x.ToString())).ToArray();
-				}
-				else if (type == typeof(float))
-				{
-					ends = new float[] { value };
-				}
-				else if (type == typeof(int))
-				{
-					ends = new float[] { float.Parse(value.ToString()) };
-				}
-				else
-				{
-					string[] split = value.ToString().Split(':');
-					int resultInt = int.Parse(split[0]) * 60 + int.Parse(split[1]);
-					ends = new[] { float.Parse(resultInt.ToString()) };
-				}
+				string[] split = value.ToString().Split(':');
+				int resultInt = int.Parse(split[0]) * 60 + int.Parse(split[1]);
+				ends = float.Parse(resultInt.ToString());
 			}
 		}
 		public string[] tags { get; set; } = null;
