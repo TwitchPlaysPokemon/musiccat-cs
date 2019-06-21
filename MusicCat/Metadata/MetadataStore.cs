@@ -58,16 +58,20 @@ namespace MusicCat.Metadata
 
 						foreach (Song song in songs)
 						{
-							if (File.Exists(song.path)) continue;
-							logger?.Invoke(new ApiLogMessage(
-								$"Song file at {song.path} does not exist, the song will not play",
-								ApiLogLevel.Warning));
-							song.path = null;
 							Song duplicate = SongList.FirstOrDefault(x => x.id == song.id);
 							if (duplicate != null)
 								throw new DuplicateSongException(
 									$"ID {song.id} has been declared twice, in songs {song.title} and {duplicate.title}");
-							SongList.Add(song);
+							if (File.Exists(song.path))
+							{
+								SongList.AddRange(new List<Song> { song });
+								continue;
+							}
+							logger?.Invoke(new ApiLogMessage(
+								$"Song file at {song.path} does not exist, the song will not play",
+								ApiLogLevel.Warning));
+							song.path = null;
+							SongList.AddRange(new List<Song> { song });
 						}
 					}
 					catch (DuplicateSongException e)
