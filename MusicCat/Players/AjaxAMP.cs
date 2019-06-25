@@ -44,15 +44,14 @@ namespace MusicCat.Players
 
 		public async Task<float> GetVolume() => float.Parse(await Get("getvolume"));
 
-		private async Task<console> GetStatus()
+		private async Task<ConsoleStatus> GetStatus()
 		{
-			console status;
-			XmlSerializer serializer = new XmlSerializer(typeof(console));
+			ConsoleStatus status;
+			var serializer = new XmlSerializer(typeof(ConsoleStatus));
 			string serialized = await Get("consolestatus.xml");
-			Console.WriteLine(serialized);
 			using (StringReader reader = new StringReader(serialized))
 			{
-				status = (console) serializer.Deserialize(reader);
+				status = serializer.Deserialize(reader) as ConsoleStatus;
 			}
 			return status;
 		}
@@ -115,10 +114,10 @@ namespace MusicCat.Players
 
 			await Task.Delay(1000);
 
-			console status = await GetStatus();
-			Console.WriteLine(status.title);
-			if (status.filename != filename)
-				throw new ApiError($"Failed to play given file. Filename: {status.title}");
+			ConsoleStatus status = await GetStatus();
+			Console.WriteLine(status.Title);
+			if (status.Filename != filename)
+				throw new ApiError($"Failed to play given file. Filename: {status.Title}");
 		}
 
 		/// <summary>
