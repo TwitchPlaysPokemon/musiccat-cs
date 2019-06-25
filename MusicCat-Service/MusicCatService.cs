@@ -15,12 +15,12 @@ namespace ServiceWrapper
         }
 
 	    const ApiLogLevel displayLogLevel = ApiLogLevel.Debug;
+	    private FileStream logStream = null;
+	    private StreamWriter logWriter = null;
 
-		protected override void OnStart(string[] args)
+	    protected override void OnStart(string[] args)
         {
-	        FileStream logStream = null;
-	        StreamWriter logWriter = null;
-			try
+	        try
 			{
 				Listener.Config = Config.ParseConfig(out logStream, out logWriter);
 			}
@@ -39,6 +39,7 @@ namespace ServiceWrapper
 				{
 					logWriter?.WriteLine(
 						$"{Enum.GetName(typeof(ApiLogLevel), ApiLogLevel.Critical)?.ToUpper()}: Failed to load metadata. Exception: {e.Message}{Environment.NewLine}{e.StackTrace}");
+					logWriter?.Flush();
 				}
 				Environment.Exit(1);
 	        }
@@ -48,7 +49,10 @@ namespace ServiceWrapper
 		        if (m.Level >= displayLogLevel)
 		        {
 			        if (logStream != null)
+			        {
 				        logWriter?.WriteLine($"{Enum.GetName(typeof(ApiLogLevel), m.Level)?.ToUpper()}: {m.Message}");
+				        logWriter?.Flush();
+			        }
 		        }
 	        });
 			Listener.Start();
@@ -56,7 +60,9 @@ namespace ServiceWrapper
 
         protected override void OnStop()
         {
-            Listener.Stop();
+	        Listener.Stop();
+			logWriter?.Dispose();
+			logStream?.Dispose();
         }
     }
 }

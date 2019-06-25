@@ -30,7 +30,10 @@ namespace ConsoleWrapper
 
 				Console.WriteLine($"{Enum.GetName(typeof(ApiLogLevel), message.Level).ToUpper()}: {message.Message}");
 				if (logStream != null)
-					logWriter?.WriteLine($"{Enum.GetName(typeof(ApiLogLevel), message.Level)?.ToUpper()}: {message.Message}");
+				{
+					logWriter?.WriteLine($"{Enum.GetName(typeof(ApiLogLevel), message.Level).ToUpper()}: {message.Message}");
+					logWriter?.Flush();
+				}
 
 				Console.ForegroundColor = ConsoleColor.White;
 			}

@@ -48,6 +48,8 @@ namespace ConsoleWrapper
             {
                 Monitor.Wait(monitor);
             }
+			logWriter?.Dispose();
+			logStream?.Dispose();
             Listener.Stop();
         }
     }
