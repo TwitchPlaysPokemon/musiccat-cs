@@ -11,14 +11,18 @@ namespace MusicCat.API
     public class PlayerControl : ApiProvider
     {
         public override IEnumerable<ApiCommand> Commands => new List<ApiCommand>() {
+			new ApiCommand("Launch", args=>EachPlayerCommand(p => p.Launch()), new List<ApiParameter>(), "Launches Winamp."),
             new ApiCommand("Play", args=>EachPlayerCommand(p => p.Play()), new List<ApiParameter>(), "Tells the music player(s) to play the current track."),
             new ApiCommand("Pause", args=>EachPlayerCommand(p => p.Pause()), new List<ApiParameter>(), "Tells the music player(s) to pause the current track."),
             new ApiCommand("Stop", args=>EachPlayerCommand(p => p.Stop()), new List<ApiParameter>(), "Tells the music player(s) to stop playing."),
-            new ApiCommand("PlayFile", args=>EachPlayerCommand(p => p.PlayFile(args.Count() > 0 ? string.Join("\\",args) : throw new ApiError("Filename was not specified"))), new List<ApiParameter>{ new ApiParameter("Filename","string") }, "Tells the music player(s) to play a specific file."),
-            new ApiCommand("SetVolume", args=>EachPlayerCommand(p => p.SetVolume(ParseRequired(args, 0, s=>float.Parse(s), "Level"))), new List<ApiParameter>{ new ApiParameter("Level","float") }, "Sets the volume of the music player(s) to the specified level (between 0 and 255)."),
+            new ApiCommand("PlayFile", args=>EachPlayerCommand(p => p.PlayFile(args.Any() ? string.Join("\\",args) : throw new ApiError("Filename was not specified"))), new List<ApiParameter>{ new ApiParameter("Filename","string") }, "Tells the music player(s) to play a specific file."),
+			new ApiCommand("PlayId", args=>EachPlayerCommand(p => p.PlayID(args.Any() ? string.Join(" ", args) : throw new ApiError("ID was not specified"))), new List<ApiParameter> {new ApiParameter("Id", "string")}, "Tells the music player to play the song with the specific id"),
+			new ApiCommand("SetVolume", args=>EachPlayerCommand(p => p.SetVolume(ParseRequired(args, 0, s=>float.Parse(s), "Level"))), new List<ApiParameter>{ new ApiParameter("Level","float") }, "Sets the volume of the music player(s) to the specified level (between 0 and 255)."),
             new ApiCommand("GetVolume", args=>EachPlayerQuery(p=>p.GetVolume()), new List<ApiParameter>(), "Gets the volume level (between 0 and 255) of the first music player."),
             new ApiCommand("SetPosition", args=>EachPlayerCommand(p => p.SetPosition(ParseRequired(args, 0, s=>float.Parse(s), "Position"))), new List<ApiParameter>{ new ApiParameter("Position","float") }, "Sets the playhead of the music player(s) to the specified position (between 0 and 1)."),
-            new ApiCommand("GetPosition", args=>EachPlayerQuery(p=>p.GetPosition()), new List<ApiParameter>(), "Gets the playhead position (from 0 to 1) of the first music player.")
+            new ApiCommand("GetPosition", args=>EachPlayerQuery(p=>p.GetPosition()), new List<ApiParameter>(), "Gets the playhead position (from 0 to 1) of the first music player."),
+			new ApiCommand("Count", args=>EachPlayerQuery(p=>p.Count(args.Count() == 1 ? args.ToArray()[0] : null)), new List<ApiParameter>{new ApiParameter("Category", "string", true)}, "Gets the number of songs in the library."),
+			new ApiCommand("Search", args=>EachPlayerQuery(p=>p.Search(args.ToArray())), new List<ApiParameter>{ new ApiParameter("Keywords", "string[]") }, "Searches through the metadata to provide songs with the closest match")
         };
 
         public PlayerControl(Action<ApiLogMessage> logger) : base(logger)
