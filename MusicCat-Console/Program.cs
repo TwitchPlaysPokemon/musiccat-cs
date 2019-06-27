@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Diagnostics.Tracing;
+using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 using ApiListener;
 using MusicCat;
 using MusicCat.Metadata;
@@ -9,6 +12,8 @@ namespace ConsoleWrapper
 {
     class Program
     {
+	    private static FileSystemWatcher watcher;
+
 		static void Main(string[] args)
         {
             var monitor = new object();
@@ -38,11 +43,18 @@ namespace ConsoleWrapper
 	        catch (Exception e)
 	        {
 				Log(new ApiLogMessage($"Failed to load metadata. Exception: {e.Message}{Environment.NewLine}{e.StackTrace}", ApiLogLevel.Critical));
-				Environment.Exit(1);
-			}
+				return;
+	        }
 
-			Listener.AttachLogger(Log);
-            System.Console.CancelKeyPress += (sender, cancelArgs) => Monitor.Pulse(monitor);
+	        watcher = new FileSystemWatcher(Environment.CurrentDirectory, "MusicCatConfig.json")
+	        {
+				NotifyFilter = NotifyFilters.LastWrite
+	        };
+	        watcher.Changed += OnConfigChange;
+	        watcher.EnableRaisingEvents = true;
+
+	        Listener.AttachLogger(Log);
+            Console.CancelKeyPress += (sender, cancelArgs) => Monitor.Pulse(monitor);
             Listener.Start();
             lock (monitor)
             {
@@ -52,5 +64,40 @@ namespace ConsoleWrapper
 			logStream?.Dispose();
             Listener.Stop();
         }
+
+		private static int counter;
+		private static void OnConfigChange(object sender, FileSystemEventArgs e)
+		{
+			if (counter == 0)
+			{
+				counter++;
+				return;
+			}
+
+			counter = 0;
+			try
+			{
+				logWriter?.Dispose();
+				logStream?.Dispose();
+				Listener.Config = Config.ParseConfig(out logStream, out logWriter);
+			}
+			catch (Exception ex)
+			{
+				Log(new ApiLogMessage($"Failed to de-serialize config, using default config instead. Exception: {ex.Message}{Environment.NewLine}{ex.StackTrace}", ApiLogLevel.Warning));
+				Listener.Config = Config.DefaultConfig;
+			}
+			Listener.Stop();
+			Listener.Start();
+			try
+			{
+				MetadataStore.SongList.Clear();
+				MetadataStore.LoadMetadata(Log);
+			}
+			catch (Exception ex)
+			{
+				Log(new ApiLogMessage($"Failed to load metadata. Exception: {ex.Message}{Environment.NewLine}{ex.StackTrace}", ApiLogLevel.Critical));
+				Environment.Exit(1);
+			}
+		}
     }
 }

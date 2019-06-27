@@ -15,8 +15,9 @@ namespace ServiceWrapper
         }
 
 	    const ApiLogLevel displayLogLevel = ApiLogLevel.Debug;
-	    private FileStream logStream = null;
-	    private StreamWriter logWriter = null;
+	    private FileStream logStream;
+	    private StreamWriter logWriter;
+	    private static FileSystemWatcher watcher;
 
 	    protected override void OnStart(string[] args)
         {
@@ -55,10 +56,57 @@ namespace ServiceWrapper
 			        }
 		        }
 	        });
+
+	        watcher = new FileSystemWatcher(Environment.CurrentDirectory, "MusicCatConfig.json")
+	        {
+		        NotifyFilter = NotifyFilters.LastWrite
+	        };
+	        watcher.Changed += OnConfigChange;
+	        watcher.EnableRaisingEvents = true;
+
 			Listener.Start();
         }
 
-        protected override void OnStop()
+	    private static int counter;
+	    private void OnConfigChange(object sender, FileSystemEventArgs e)
+	    {
+		    if (counter == 0)
+		    {
+			    counter++;
+			    return;
+		    }
+
+		    counter = 0;
+		    Listener.Stop();
+		    try
+		    {
+				logWriter?.Dispose();
+				logStream?.Dispose();
+			    Listener.Config = Config.ParseConfig(out logStream, out logWriter);
+		    }
+		    catch
+		    {
+			    Listener.Config = Config.DefaultConfig;
+		    }
+		    Listener.Start();
+		    try
+		    {
+				MetadataStore.SongList.Clear();
+			    MetadataStore.LoadMetadata();
+		    }
+		    catch (Exception ex)
+		    {
+			    if (logStream != null)
+			    {
+				    logWriter?.WriteLine(
+					    $"{Enum.GetName(typeof(ApiLogLevel), ApiLogLevel.Critical)?.ToUpper()}: Failed to load metadata. Exception: {ex.Message}{Environment.NewLine}{ex.StackTrace}");
+				    logWriter?.Flush();
+			    }
+			    Environment.Exit(1);
+		    }
+	    }
+
+		protected override void OnStop()
         {
 	        Listener.Stop();
 			logWriter?.Dispose();

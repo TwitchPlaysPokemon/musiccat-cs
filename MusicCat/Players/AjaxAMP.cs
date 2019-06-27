@@ -5,6 +5,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Runtime.InteropServices.ComTypes;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 using ApiListener;
@@ -16,6 +17,8 @@ namespace MusicCat.Players
 	public class AjaxAMP : IPlayer
 	{
 		private HttpClient httpClient;
+		private Random rng = new Random();
+		private Process winAmp;
 
 		public AjaxAMP(AjaxAMPConfig config)
 		{
@@ -58,6 +61,46 @@ namespace MusicCat.Players
 
 		public Task<int> Count(string category = null) => MetadataStore.Count(category);
 
+		public Task<Song> GetRandomSong() => MetadataStore.GetRandomSong();
+
+		public async Task<Song> GetRandomSongBy(string[] args)
+		{
+			List<Song> filterList = null;
+			string[] processedArgs = int.TryParse(args.Last(), out _) ? args.Take(args.Length - 1).ToArray() : args;
+
+			if (args.Length == 0)
+				throw new ApiError("Arguments cannot be null.");
+
+			for (int i = 0; i < processedArgs.Length; i += 2)
+			{
+				string filterType = args[i].Trim().ToLowerInvariant();
+				switch (filterType)
+				{
+					case "tag":
+						filterList = await GetSongListByTag(args[i + 1].Trim().ToLowerInvariant(), filterList);
+						break;
+					case "category":
+						filterList = await GetSongListByCategory((SongType) Enum.Parse(typeof(SongType),
+							args[i + 1].Trim().ToLowerInvariant()), filterList);
+						break;
+					case "game":
+						filterList = await GetSongListByGame(args[i + 1].Trim().ToLowerInvariant(), filterList);
+						break;
+					default:
+						throw new ApiError($"Unrecognised filter: {filterType}");
+				}
+			}
+
+			if (int.TryParse(args.Last(), out int result))
+				filterList = filterList == null
+					? SongList.Where(x => x.ends != null && x.ends >= result).ToList()
+					: filterList?.Where(x => x.ends != null && x.ends >= result).ToList();
+
+			if (filterList == null || filterList.Count == 0)
+				return null;
+			return filterList[rng.Next(filterList.Count)];
+		}
+
 		public async Task Launch()
 		{
 			if (Process.GetProcessesByName("Winamp").Length > 0)
@@ -69,8 +112,8 @@ namespace MusicCat.Players
 			if (!File.Exists(Listener.Config.WinampPath))
 				throw new ApiError("There is no file at the given path.");
 
-			Process process = new Process { StartInfo = { FileName = Listener.Config.WinampPath } };
-			process.Start();
+			winAmp = new Process { StartInfo = { FileName = Listener.Config.WinampPath } };
+			winAmp.Start();
 
 			bool flag = false;
 			while (!flag)
@@ -177,6 +220,11 @@ namespace MusicCat.Players
 				}
 				return results.OrderByDescending(x => x.match).Take(5).ToList();
 			});
+
+		~AjaxAMP()
+		{
+			winAmp?.Dispose();
+		}
 	}
 
 	public class AjaxAMPConfig

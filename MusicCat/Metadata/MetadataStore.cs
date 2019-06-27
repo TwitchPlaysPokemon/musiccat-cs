@@ -13,12 +13,32 @@ namespace MusicCat.Metadata
 	{
 		private static FileSystemWatcher watcher;
 		private static Timer timer;
+		private static Random rng = new Random();
 
 		public static List<Song> SongList = new List<Song>();
 		private static Action<ApiLogMessage> logger;
 
 		public static Task<int> Count(string category = null) => Task.Run(() => category != null ? SongList.Count(x => x.types.Contains((SongType)Enum.Parse(typeof(SongType), category))) : SongList.Count);
 
+		public static Task<Song> GetRandomSong() => Task.Run(() => SongList[rng.Next(SongList.Count)]);
+
+		public static Task<List<Song>> GetSongListByTag(string tag, List<Song> songList = null) => Task.Run(() =>
+			songList == null
+				? SongList.Where(x => x.tags != null && x.tags.Contains(tag)).ToList()
+				: songList.Where(x => x.tags != null && x.tags.Contains(tag)).ToList());
+
+		public static Task<List<Song>> GetSongListByCategory(SongType category, List<Song> songList = null) => Task.Run(
+			() =>
+				songList == null
+					? SongList.Where(x => x.types != null && x.types.Length != 0 && x.types.Contains(category)).ToList()
+					: songList.Where(x => x.types != null && x.types.Length != 0 && x.types.Contains(category))
+						.ToList());
+
+		public static Task<List<Song>> GetSongListByGame(string game, List<Song> songList = null) => Task.Run(() =>
+			songList == null
+				? SongList.Where(x => x.game.id == game).ToList()
+				: songList.Where(x => x.game.id == game).ToList());
+		
 		public static async void LoadMetadata(Action<ApiLogMessage> logger = null) => await Task.Run(() =>
 		{
 			if (watcher == null)
@@ -275,6 +295,7 @@ namespace MusicCat.Metadata
 
 		private static void OnTimerElapsed(object sender, ElapsedEventArgs e)
 		{
+			SongList.Clear();
 			LoadMetadata(logger);
 			timer.Dispose();
 			timer = null;

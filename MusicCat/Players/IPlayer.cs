@@ -71,6 +71,19 @@ namespace MusicCat.Players
 		Task<int> Count(string category = null);
 
 		/// <summary>
+		/// Gets a random song across all categories
+		/// </summary>
+		/// <returns></returns>
+		Task<Song> GetRandomSong();
+
+		/// <summary>
+		/// Gets a random song that fits a filter
+		/// </summary>
+		/// <param name="args"></param>
+		/// <returns></returns>
+		Task<Song> GetRandomSongBy(string[] args);
+
+		/// <summary>
 		/// Searches through the metadata to provide songs with the closest match
 		/// </summary>
 		/// <param name="keywords">keywords to search</param>
