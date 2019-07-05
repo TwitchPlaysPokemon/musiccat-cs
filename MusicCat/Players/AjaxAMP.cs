@@ -173,10 +173,13 @@ namespace MusicCat.Players
 			Song song = SongList.First(x => x.id == id);
 			if (song?.path == null)
 				throw new ApiError("Song has no path");
-			if (!song.canBePlayed)
-				throw new ApiError("Song is on cooldown");
 			await PlayFile(song.path);
 
+			if (Cooldowns.TryGetValue(id, out Timer timer2))
+			{
+				timer2.Dispose();
+				Cooldowns.Remove(id);
+			}
 			Timer timer = new Timer(6.48e+7);
 			timer.Elapsed  += delegate { CooldownElapsed(id); };
 			song.canBePlayed = false;
