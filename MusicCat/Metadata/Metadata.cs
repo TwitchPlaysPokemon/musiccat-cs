@@ -22,11 +22,28 @@ namespace MusicCat.Metadata
 			get => platform;
 			set
 			{
-				Type type = value.GetType();
-				if (type.IsArray && type.GetElementType() == typeof(string))
-					platform = ((object[]) value).Select(obj => obj.ToString()).ToArray();
+				if (value == null)
+				{
+					platform = null;
+				}
 				else
-					platform = new string[] {value.ToString()};
+				{
+					Type type = value.GetType();
+					if (type.IsArray || typeof(IEnumerable<object>).IsAssignableFrom(type))
+					{
+						List<string> platforms = new List<string>();
+						foreach (object obj in (IEnumerable<object>)value)
+						{
+							platforms.Add(obj.ToString());
+						}
+
+						platform = platforms.ToArray();
+					}
+					else
+					{
+						platform = new string[] { value.ToString() };
+					}
+				}
 			}
 		}
 

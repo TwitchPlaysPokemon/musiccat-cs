@@ -5,8 +5,8 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
-using System.Runtime.InteropServices.ComTypes;
 using System.Threading.Tasks;
+using System.Timers;
 using System.Xml.Serialization;
 using ApiListener;
 using MusicCat.Metadata;
@@ -173,7 +173,17 @@ namespace MusicCat.Players
 			Song song = SongList.First(x => x.id == id);
 			if (song?.path == null)
 				throw new ApiError("Song has no path");
+			if (!song.canBePlayed)
+				throw new ApiError("Song is on cooldown");
 			await PlayFile(song.path);
+
+			Timer timer = new Timer(6.48e+7);
+			timer.Elapsed  += delegate { CooldownElapsed(id); };
+			song.canBePlayed = false;
+			song.cooldownExpiry = DateTime.UtcNow.AddMilliseconds(6.48e+7);
+			timer.AutoReset = false;
+			timer.Start();
+			Cooldowns.Add(id, timer);
 		}
 
 		public Task SetPosition(float percent) => Post("setposition", new Dictionary<string, string> { ["pos"] = percent.ToString() });
