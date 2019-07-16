@@ -221,7 +221,7 @@ namespace MusicCat.Players
 						float subratio2 = haystack2.Select(word => keyword2.LevenshteinRatio(word))
 							.Concat(new float[] {0}).Max();
 
-						float subratio = Math.Max(subratio1, subratio2);
+						float subratio = Math.Max(subratio1, subratio2 * 0.9);
 						if (subratio > 0.7)
 							ratio += subratio;
 					}
