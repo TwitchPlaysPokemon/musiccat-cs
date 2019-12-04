@@ -83,20 +83,17 @@ namespace ConsoleWrapper
 			}
 			catch (Exception ex)
 			{
-				Log(new ApiLogMessage($"Failed to de-serialize config, using default config instead. Exception: {ex.Message}{Environment.NewLine}{ex.StackTrace}", ApiLogLevel.Warning));
-				Listener.Config = Config.DefaultConfig;
+				Log(new ApiLogMessage($"Failed to de-serialize config, using current config instead. Exception: {ex.Message}{Environment.NewLine}{ex.StackTrace}", ApiLogLevel.Warning));
 			}
 			Listener.Stop();
 			Listener.Start();
 			try
 			{
-				MetadataStore.SongList.Clear();
 				MetadataStore.LoadMetadata(Log);
 			}
 			catch (Exception ex)
 			{
 				Log(new ApiLogMessage($"Failed to load metadata. Exception: {ex.Message}{Environment.NewLine}{ex.StackTrace}", ApiLogLevel.Critical));
-				Environment.Exit(1);
 			}
 		}
     }

@@ -42,6 +42,7 @@ namespace MusicCat.Metadata
 		
 		public static async void LoadMetadata(Action<ApiLogMessage> logger = null) => await Task.Run(() =>
 		{
+			List<Song> tempList = new List<Song>();
 			if (watcher == null)
 			{
 				MetadataStore.logger = logger;
@@ -79,20 +80,20 @@ namespace MusicCat.Metadata
 
 						foreach (Song song in songs)
 						{
-							Song duplicate = SongList.FirstOrDefault(x => x.id == song.id);
+							Song duplicate = tempList.FirstOrDefault(x => x.id == song.id);
 							if (duplicate != null)
 								throw new DuplicateSongException(
 									$"ID {song.id} has been declared twice, in songs {song.title} and {duplicate.title}");
 							if (File.Exists(song.path))
 							{
-								SongList.AddRange(new List<Song> { song });
+								tempList.AddRange(new List<Song> { song });
 								continue;
 							}
 							logger?.Invoke(new ApiLogMessage(
 								$"Song file at {song.path} does not exist, the song will not play",
 								ApiLogLevel.Warning));
 							song.path = null;
-							SongList.AddRange(new List<Song> { song });
+							tempList.AddRange(new List<Song> { song });
 						}
 					}
 					catch (DuplicateSongException e)
@@ -108,6 +109,8 @@ namespace MusicCat.Metadata
 					}
 				}
 			}
+
+			SongList = tempList;
 		});
 
 		public static bool VerifyMetadata(bool showUnused, Action<ApiLogMessage> logger = null)

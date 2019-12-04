@@ -85,13 +85,10 @@ namespace ServiceWrapper
 			    Listener.Config = Config.ParseConfig(out logStream, out logWriter);
 		    }
 		    catch
-		    {
-			    Listener.Config = Config.DefaultConfig;
-		    }
+		    { }
 		    Listener.Start();
 		    try
 		    {
-				MetadataStore.SongList.Clear();
 			    MetadataStore.LoadMetadata();
 		    }
 		    catch (Exception ex)
@@ -102,7 +99,6 @@ namespace ServiceWrapper
 					    $"{Enum.GetName(typeof(ApiLogLevel), ApiLogLevel.Critical)?.ToUpper()}: Failed to load metadata. Exception: {ex.Message}{Environment.NewLine}{ex.StackTrace}");
 				    logWriter?.Flush();
 			    }
-			    Environment.Exit(1);
 		    }
 	    }
 
