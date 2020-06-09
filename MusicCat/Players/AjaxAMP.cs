@@ -199,6 +199,10 @@ namespace MusicCat.Players
 			string requiredTag = null,
 			float cutoff = 0.3f) => Task.Run(() =>
 			{
+				if (keywords.Any(x => x.StartsWith("required_tag=")))
+				{
+					requiredTag = keywords.First(x => x.StartsWith("required_tag=")).Replace("required_tag=", "");
+				}
 				var results = new List<(Song song, float match)>();
 
 				foreach (Song song in SongList)
