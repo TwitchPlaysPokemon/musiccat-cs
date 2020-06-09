@@ -45,7 +45,7 @@ namespace MusicCat.Players
 
 		public async Task<float> GetPosition() => float.Parse(await Get("getposition"));
 
-		public async Task<float> GetVolume() => float.Parse(await Get("getvolume"));
+		public async Task<float> GetVolume() => float.Parse(await Get("getvolume")) / 255f;
 
 		private async Task<ConsoleStatus> GetStatus()
 		{
@@ -191,7 +191,7 @@ namespace MusicCat.Players
 
 		public Task SetPosition(float percent) => Post("setposition", new Dictionary<string, string> { ["pos"] = percent.ToString() });
 
-		public Task SetVolume(float level) => Post("setvolume", new Dictionary<string, string> { ["level"] = level.ToString() });
+		public Task SetVolume(float level) => Post("setvolume", new Dictionary<string, string> { ["level"] = (level * 255f).ToString() });
 
 		public Task Stop() => Post("stop");
 
