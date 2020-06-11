@@ -62,35 +62,5 @@ namespace MusicCat.Players
         /// </summary>
         /// <returns>0 to 1</returns>
         Task<float> GetPosition();
-
-		/// <summary>
-		/// Gets the number of songs in the library
-		/// </summary>
-		/// <param name="category">The category of the song, must be parseable into the SongType enum</param>
-		/// <returns></returns>
-		Task<int> Count(string category = null);
-
-		/// <summary>
-		/// Gets a random song across all categories
-		/// </summary>
-		/// <returns></returns>
-		Task<Song> GetRandomSong();
-
-		/// <summary>
-		/// Gets a random song that fits a filter
-		/// </summary>
-		/// <param name="args"></param>
-		/// <returns></returns>
-		Task<Song> GetRandomSongBy(string[] args);
-
-		/// <summary>
-		/// Searches through the metadata to provide songs with the closest match
-		/// </summary>
-		/// <param name="keywords">keywords to search</param>
-		/// <param name="requiredTag">any required tag</param>
-		/// <param name="cutoff">the cutoff value, with 1.0 being a perfect match</param>
-		/// <returns>a list of tuples containing the song and the match ratio</returns>
-	    Task<List<(Song song, float match)>> Search(string[] keywords, string requiredTag = null,
-		    float cutoff = 0.3f);
-    }
+	}
 }
