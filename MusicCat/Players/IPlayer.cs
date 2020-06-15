@@ -31,12 +31,13 @@ namespace MusicCat.Players
         /// Sets music player volume
         /// </summary>
         /// <param name="level">0 to 1</param>
-        Task SetVolume(float level);
+        /// <returns>the new volume, 0 to max</returns>
+        Task<float> SetVolume(float level);
 
         /// <summary>
         /// Gets music player volume
         /// </summary>
-        /// <returns>0 to 1</returns>
+        /// <returns>0 to max</returns>
         Task<float> GetVolume();
 
         /// <summary>

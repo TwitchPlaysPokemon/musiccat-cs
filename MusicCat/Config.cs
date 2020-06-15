@@ -20,7 +20,8 @@ namespace MusicCat
 			WinampPath = "C:\\Program Files (x86)\\Winamp\\winamp.exe",
 			AjaxAMPConfig = new Players.AjaxAMPConfig
             {
-                BaseUrl = "http://localhost:5151"
+                BaseUrl = "http://localhost:5151",
+				MaxVolume = 2.0f
             }
         };
 

@@ -18,6 +18,7 @@ namespace MusicCat.Players
 	{
 		private HttpClient httpClient;
 		private Process winAmp;
+		private float MaxVolume;
 
 		public AjaxAMP(AjaxAMPConfig config)
 		{
@@ -25,6 +26,7 @@ namespace MusicCat.Players
 			{
 				BaseAddress = new Uri(config.BaseUrl)
 			};
+			MaxVolume = config.MaxVolume;
 		}
 
 		private Task<string> SendCommand(string command, Dictionary<string, string> args = null, bool post = false)
@@ -44,7 +46,7 @@ namespace MusicCat.Players
 
 		public async Task<float> GetPosition() => float.Parse(await Get("getposition"));
 
-		public async Task<float> GetVolume() => float.Parse(await Get("getvolume")) / 255f;
+		public async Task<float> GetVolume() => float.Parse(await Get("getvolume")) / 255f * MaxVolume;
 
 		private async Task<ConsoleStatus> GetStatus()
 		{
@@ -149,7 +151,23 @@ namespace MusicCat.Players
 
 		public Task SetPosition(float percent) => Post("setposition", new Dictionary<string, string> { ["pos"] = percent.ToString() });
 
-		public Task SetVolume(float level) => Post("setvolume", new Dictionary<string, string> { ["level"] = (level * 255f).ToString() });
+		public async Task<float> SetVolume(float level)
+		{
+			float Clamp(float value, float min, float max)
+			{
+				if (value < min)
+					return min;
+
+				if (value > max)
+					return max;
+
+				return value;
+			}
+
+			float newVolume = Clamp(await GetVolume() + level, 0f, MaxVolume);
+			await Post("setvolume", new Dictionary<string, string> { ["level"] = (newVolume / MaxVolume * 255f).ToString() });
+			return newVolume;
+		}
 
 		public Task Stop() => Post("stop");
 
@@ -162,5 +180,6 @@ namespace MusicCat.Players
 	public class AjaxAMPConfig
 	{
 		public string BaseUrl { get; set; }
+		public float MaxVolume { get; set; } = 2.0f;
 	}
 }
