@@ -93,7 +93,6 @@ namespace MusicCat.Metadata
 								$"Song file at {song.path} does not exist, the song will not play",
 								ApiLogLevel.Warning));
 							song.path = null;
-							tempList.AddRange(new List<Song> { song });
 						}
 					}
 					catch (DuplicateSongException e)
