@@ -60,6 +60,7 @@ namespace MusicCat.Metadata
 			if (keywords.Any(x => x.StartsWith("required_tag=")))
 			{
 				requiredTag = keywords.First(x => x.StartsWith("required_tag=")).Replace("required_tag=", "");
+				keywords = keywords.Where(x => !x.StartsWith("required_tag=")).ToArray();
 			}
 			var results = new List<(Song song, float match)>();
 
