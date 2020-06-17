@@ -44,9 +44,7 @@ namespace MusicCat.Metadata
 			}
 
 			if (int.TryParse(args.Last(), out int result))
-				filterList = filterList == null
-					? SongList.Where(x => x.ends != null && x.ends >= result).ToList()
-					: filterList?.Where(x => x.ends != null && x.ends >= result).ToList();
+				filterList = (filterList ?? SongList).Where(x => x.ends != null && x.ends >= result).ToList();
 
 			if (filterList == null || filterList.Count == 0)
 				return null;

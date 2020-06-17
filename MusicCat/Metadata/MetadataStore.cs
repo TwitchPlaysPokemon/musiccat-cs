@@ -24,22 +24,16 @@ namespace MusicCat.Metadata
 		public static Task<Song> GetRandomSong() => Task.Run(() => SongList[rng.Next(SongList.Count)]);
 
 		public static Task<List<Song>> GetSongListByTag(string tag, List<Song> songList = null) => Task.Run(() =>
-			songList == null
-				? SongList.Where(x => x.tags != null && x.tags.Contains(tag) && x.canBePlayed).ToList()
-				: songList.Where(x => x.tags != null && x.tags.Contains(tag) && x.canBePlayed).ToList());
+			(songList ?? SongList).Where(x => x.tags != null && x.tags.Contains(tag) && x.canBePlayed).ToList());
 
 		public static Task<List<Song>> GetSongListByCategory(SongType category, List<Song> songList = null) => Task.Run(
 			() =>
-				songList == null
-					? SongList.Where(x => x.types != null && x.types.Length != 0 && x.types.Contains(category) && x.canBePlayed).ToList()
-					: songList.Where(x => x.types != null && x.types.Length != 0 && x.types.Contains(category) && x.canBePlayed)
-						.ToList());
+				(songList ?? SongList).Where(x =>
+					x.types != null && x.types.Length != 0 && x.types.Contains(category) && x.canBePlayed).ToList());
 
 		public static Task<List<Song>> GetSongListByGame(string game, List<Song> songList = null) => Task.Run(() =>
-			songList == null
-				? SongList.Where(x => x.game.id == game && x.canBePlayed).ToList()
-				: songList.Where(x => x.game.id == game && x.canBePlayed).ToList());
-		
+			(songList ?? SongList).Where(x => x.game.id == game && x.canBePlayed).ToList());
+
 		public static async void LoadMetadata(Action<ApiLogMessage> logger = null) => await Task.Run(() =>
 		{
 			List<Song> tempList = new List<Song>();
