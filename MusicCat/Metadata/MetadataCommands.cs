@@ -46,9 +46,7 @@ namespace MusicCat.Metadata
 			if (int.TryParse(args.Last(), out int result))
 				filterList = (filterList ?? SongList).Where(x => x.ends != null && x.ends >= result).ToList();
 
-			if (filterList == null || filterList.Count == 0)
-				return null;
-			return filterList[rng.Next(filterList.Count)];
+			return filterList == null || filterList.Count == 0 ? null : filterList[rng.Next(filterList.Count)];
 		}
 
 		public static Task<List<(Song song, float match)>> Search(string[] keywords,
