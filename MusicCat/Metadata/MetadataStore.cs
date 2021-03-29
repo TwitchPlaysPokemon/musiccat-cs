@@ -13,14 +13,30 @@ namespace MusicCat.Metadata
 	{
 		private static FileSystemWatcher watcher;
 		private static Timer timer;
+		private static Random rng = new Random();
 
 		public static List<Song> SongList = new List<Song>();
+		public static Dictionary<string, Timer> Cooldowns = new Dictionary<string, Timer>();
 		private static Action<ApiLogMessage> logger;
 
 		public static Task<int> Count(string category = null) => Task.Run(() => category != null ? SongList.Count(x => x.types.Contains((SongType)Enum.Parse(typeof(SongType), category))) : SongList.Count);
 
+		public static Task<Song> GetRandomSong() => Task.Run(() => SongList[rng.Next(SongList.Count)]);
+
+		public static Task<List<Song>> GetSongListByTag(string tag, List<Song> songList = null) => Task.Run(() =>
+			(songList ?? SongList).Where(x => x.tags != null && x.tags.Contains(tag) && x.canBePlayed).ToList());
+
+		public static Task<List<Song>> GetSongListByCategory(SongType category, List<Song> songList = null) => Task.Run(
+			() =>
+				(songList ?? SongList).Where(x =>
+					x.types != null && x.types.Length != 0 && x.types.Contains(category) && x.canBePlayed).ToList());
+
+		public static Task<List<Song>> GetSongListByGame(string game, List<Song> songList = null) => Task.Run(() =>
+			(songList ?? SongList).Where(x => x.game.id == game && x.canBePlayed).ToList());
+
 		public static async void LoadMetadata(Action<ApiLogMessage> logger = null) => await Task.Run(() =>
 		{
+			List<Song> tempList = new List<Song>();
 			if (watcher == null)
 			{
 				MetadataStore.logger = logger;
@@ -58,20 +74,19 @@ namespace MusicCat.Metadata
 
 						foreach (Song song in songs)
 						{
-							Song duplicate = SongList.FirstOrDefault(x => x.id == song.id);
+							Song duplicate = tempList.FirstOrDefault(x => x.id == song.id);
 							if (duplicate != null)
 								throw new DuplicateSongException(
 									$"ID {song.id} has been declared twice, in songs {song.title} and {duplicate.title}");
 							if (File.Exists(song.path))
 							{
-								SongList.AddRange(new List<Song> { song });
+								tempList.AddRange(new List<Song> { song });
 								continue;
 							}
 							logger?.Invoke(new ApiLogMessage(
 								$"Song file at {song.path} does not exist, the song will not play",
 								ApiLogLevel.Warning));
 							song.path = null;
-							SongList.AddRange(new List<Song> { song });
 						}
 					}
 					catch (DuplicateSongException e)
@@ -83,10 +98,12 @@ namespace MusicCat.Metadata
 					catch (Exception e)
 					{
 						logger?.Invoke(new ApiLogMessage($"Exception processing metadata file {Path.Combine(Path.Combine(Listener.Config.MusicBaseDir, directory), filename)}: {e.Message}{Environment.NewLine}{e.StackTrace}" +
-														$"{Environment.NewLine}Attempting to continue", ApiLogLevel.Critical));
+														$"{Environment.NewLine}Inner Exception: {e.InnerException}{Environment.NewLine}Attempting to continue", ApiLogLevel.Critical));
 					}
 				}
 			}
+
+			SongList = tempList;
 		});
 
 		public static bool VerifyMetadata(bool showUnused, Action<ApiLogMessage> logger = null)
@@ -275,6 +292,7 @@ namespace MusicCat.Metadata
 
 		private static void OnTimerElapsed(object sender, ElapsedEventArgs e)
 		{
+			SongList.Clear();
 			LoadMetadata(logger);
 			timer.Dispose();
 			timer = null;
@@ -295,9 +313,23 @@ namespace MusicCat.Metadata
 					is_fanwork = metadata.is_fanwork
 				};
 				song.path = Path.Combine(path, song.path);
+				if (Cooldowns.TryGetValue(song.id, out Timer timer))
+					if (timer.Enabled)
+						song.canBePlayed = false;
 				result.Add(song);
 			}
 			return result;
+		}
+
+		public static void CooldownElapsed(string id)
+		{
+			Timer timer = Cooldowns[id];
+			timer.Dispose();
+			Song song = SongList.FirstOrDefault(x => x.id == id);
+			Cooldowns.Remove(id);
+			if (song == null) return;
+			song.canBePlayed = true;
+			song.cooldownExpiry = null;
 		}
 
 		~MetadataStore()
@@ -306,6 +338,11 @@ namespace MusicCat.Metadata
 			{
 				watcher.Changed -= OnFileChanged;
 				watcher.Dispose();
+			}
+
+			foreach (KeyValuePair<string, Timer> kvp in Cooldowns)
+			{
+				kvp.Value.Dispose();
 			}
 
 			timer?.Dispose();

@@ -30,13 +30,14 @@ namespace MusicCat.Players
         /// <summary>
         /// Sets music player volume
         /// </summary>
-        /// <param name="level">0 to 255</param>
-        Task SetVolume(float level);
+        /// <param name="level">0 to 1</param>
+        /// <returns>the new volume, 0 to max</returns>
+        Task<float> SetVolume(float level);
 
         /// <summary>
         /// Gets music player volume
         /// </summary>
-        /// <returns>0 to 255</returns>
+        /// <returns>0 to max</returns>
         Task<float> GetVolume();
 
         /// <summary>
@@ -62,22 +63,5 @@ namespace MusicCat.Players
         /// </summary>
         /// <returns>0 to 1</returns>
         Task<float> GetPosition();
-
-		/// <summary>
-		/// Gets the number of songs in the library
-		/// </summary>
-		/// <param name="category">The category of the song, must be parseable into the SongType enum</param>
-		/// <returns></returns>
-		Task<int> Count(string category = null);
-
-		/// <summary>
-		/// Searches through the metadata to provide songs with the closest match
-		/// </summary>
-		/// <param name="keywords">keywords to search</param>
-		/// <param name="requiredTag">any required tag</param>
-		/// <param name="cutoff">the cutoff value, with 1.0 being a perfect match</param>
-		/// <returns>a list of tuples containing the song and the match ratio</returns>
-	    Task<List<(Song song, float match)>> Search(string[] keywords, string requiredTag = null,
-		    float cutoff = 0.3f);
-    }
+	}
 }

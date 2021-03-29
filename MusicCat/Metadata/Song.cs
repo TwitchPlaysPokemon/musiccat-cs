@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using YamlDotNet.Serialization;
@@ -29,10 +28,10 @@ namespace MusicCat.Metadata
 				else
 				{
 					Type type = value.GetType();
-					if (type.IsArray && type.GetElementType().IsEnum)
+					if (type.IsArray || typeof(IEnumerable<object>).IsAssignableFrom(type))
 					{
 						List<SongType> songTypes = new List<SongType>();
-						foreach (object obj in (object[]) value)
+						foreach (object obj in (IEnumerable<object>) value)
 						{
 							songTypes.Add((SongType) Enum.Parse(typeof(SongType), obj.ToString()));
 						}
@@ -62,7 +61,47 @@ namespace MusicCat.Metadata
 				ends = float.Parse(resultInt.ToString());
 			}
 		}
+		[YamlIgnore]
 		public string[] tags { get; set; } = null;
+
+		[YamlMember(Alias = "tags", ApplyNamingConventions = false)]
+		public dynamic platformFake
+		{
+			get => tags;
+			set
+			{
+				if (value == null)
+				{
+					tags = null;
+				}
+				else
+				{
+					Type type = value.GetType();
+					if (type.IsArray || typeof(IEnumerable<object>).IsAssignableFrom(type))
+					{
+						List<string> tagList = new List<string>();
+						foreach (object obj in (IEnumerable<object>)value)
+						{
+							tagList.Add(obj.ToString());
+						}
+
+						tags = tagList.ToArray();
+					}
+					else
+					{
+						tags = new string[] { value.ToString() };
+					}
+				}
+			}
+		}
+
+		[YamlIgnore]
+		public bool canBePlayed = true;
+
+		[YamlIgnore]
+		[JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+		public DateTime? cooldownExpiry = null;
+
 		[YamlIgnore]
 		public Game game { get; set; }
 	}
