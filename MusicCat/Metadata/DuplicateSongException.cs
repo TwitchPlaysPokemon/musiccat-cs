@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace MusicCat.Metadata;
+﻿namespace MusicCat.Metadata;
 
 public class DuplicateSongException : Exception
 {

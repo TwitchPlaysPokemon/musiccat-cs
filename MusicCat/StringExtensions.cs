@@ -1,11 +1,9 @@
-﻿using System;
-
-namespace MusicCat;
+﻿namespace MusicCat;
 
 public static class StringExtensions
 {
 	//https://social.technet.microsoft.com/wiki/contents/articles/26805.c-calculating-percentage-similarity-of-2-strings.aspx
-	public static float LevenshteinRatio(this string source, string target)
+	public static float LevenshteinRatio(this string? source, string? target)
 	{
 		if (source == null || target == null) return 0.0f;
 		if (source.Length == 0 || target.Length == 0) return 0.0f;

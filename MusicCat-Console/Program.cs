@@ -1,21 +1,18 @@
-﻿using System;
-using System.IO;
-using System.Threading;
-using ApiListener;
+﻿using ApiListener;
 using MusicCat;
 using MusicCat.Metadata;
 using static ConsoleWrapper.Logger;
 
 namespace ConsoleWrapper;
 
-class Program
+internal static class Program
 {
-	static void Main(string[] args)
+	private static void Main(string[] args)
 	{
 		var monitor = new object();
 		try
 		{
-			Listener.Config = Config.ParseConfig(out logStream, out logWriter);
+			Listener.Config = Config.ParseConfig(out LogStream, out LogWriter);
 		}
 		catch (Exception e)
 		{
@@ -56,8 +53,8 @@ class Program
 		{
 			Monitor.Wait(monitor);
 		}
-		logWriter?.Dispose();
-		logStream?.Dispose();
+		LogWriter?.Dispose();
+		LogStream?.Dispose();
 		Listener.Stop();
 	}
 
@@ -73,9 +70,9 @@ class Program
 		counter = 0;
 		try
 		{
-			logWriter?.Dispose();
-			logStream?.Dispose();
-			Listener.Config = Config.ParseConfig(out logStream, out logWriter);
+			LogWriter?.Dispose();
+			LogStream?.Dispose();
+			Listener.Config = Config.ParseConfig(out LogStream, out LogWriter);
 		}
 		catch (Exception ex)
 		{

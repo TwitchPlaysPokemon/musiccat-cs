@@ -1,6 +1,4 @@
-﻿using System.Threading.Tasks;
-
-namespace MusicCat.Players;
+﻿namespace MusicCat.Players;
 
 public interface IPlayer
 {

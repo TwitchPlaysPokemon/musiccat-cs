@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using YamlDotNet.Serialization;
+﻿#nullable disable
 
-#nullable disable
+using YamlDotNet.Serialization;
 
 namespace MusicCat.Metadata;
 

@@ -1,19 +1,17 @@
-﻿using System;
-using System.IO;
-using ApiListener;
+﻿#nullable disable
 
-#nullable disable
+using ApiListener;
 
 namespace ConsoleWrapper;
 
 public static class Logger
 {
-	const ApiLogLevel displayLogLevel = ApiLogLevel.Debug;
-	public static FileStream logStream = null;
-	public static StreamWriter logWriter = null;
+	const ApiLogLevel DisplayLogLevel = ApiLogLevel.Debug;
+	public static FileStream LogStream = null;
+	public static StreamWriter LogWriter = null;
 	public static void Log(ApiLogMessage message)
 	{
-		if (message.Level >= displayLogLevel)
+		if (message.Level >= DisplayLogLevel)
 		{
 			switch (message.Level)
 			{
@@ -31,10 +29,10 @@ public static class Logger
 			}
 
 			Console.WriteLine($"{Enum.GetName(typeof(ApiLogLevel), message.Level).ToUpper()}: {message.Message}");
-			if (logStream != null)
+			if (LogStream != null)
 			{
-				logWriter?.WriteLine($"{Enum.GetName(typeof(ApiLogLevel), message.Level).ToUpper()}: {message.Message}");
-				logWriter?.Flush();
+				LogWriter?.WriteLine($"{Enum.GetName(typeof(ApiLogLevel), message.Level).ToUpper()}: {message.Message}");
+				LogWriter?.Flush();
 			}
 
 			Console.ForegroundColor = ConsoleColor.White;
