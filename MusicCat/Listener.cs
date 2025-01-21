@@ -1,17 +1,16 @@
 ﻿using System;
 
-namespace MusicCat
+namespace MusicCat;
+
+public static class Listener
 {
-    public static class Listener
-    {
-        public static Config Config { get; set; } = Config.DefaultConfig;
+    public static Config Config { get; set; } = Config.DefaultConfig;
 
-        public static void Start() => ApiListener.ApiListener.Start(Config.HttpPort);
+    public static void Start() => ApiListener.ApiListener.Start(Config.HttpPort);
 
-        public static void Stop() => ApiListener.ApiListener.Stop();
+    public static void Stop() => ApiListener.ApiListener.Stop();
 
-        public static string CallEndpoint(string name, string[] args) => ApiListener.ApiListener.Commands[name].Function(args);
+    public static string CallEndpoint(string name, string[] args) => ApiListener.ApiListener.Commands[name].Function(args);
 
-        public static void AttachLogger(Action<ApiListener.ApiLogMessage> logger) => ApiListener.ApiListener.AttachLogger(logger);
-    }
+    public static void AttachLogger(Action<ApiListener.ApiLogMessage> logger) => ApiListener.ApiListener.AttachLogger(logger);
 }
