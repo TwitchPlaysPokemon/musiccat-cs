@@ -134,3 +134,7 @@ UpgradeLog*.htm
 # SQL Server files
 App_Data/*.mdf
 App_Data/*.ldf
+
+# IntelliJ files
+.idea
+*.iml
