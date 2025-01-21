@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Newtonsoft.Json;
-using YamlDotNet.Serialization;
-
-#nullable disable
+﻿#nullable disable
 
 namespace MusicCat.Metadata;
 

@@ -1,7 +1,6 @@
-﻿using System;
-using System.Xml.Serialization;
+﻿#nullable disable
 
-#nullable disable
+using System.Xml.Serialization;
 
 namespace MusicCat;
 

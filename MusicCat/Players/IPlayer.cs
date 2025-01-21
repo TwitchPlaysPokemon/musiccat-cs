@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-using MusicCat.Metadata;
+﻿using System.Threading.Tasks;
 
 namespace MusicCat.Players;
 
