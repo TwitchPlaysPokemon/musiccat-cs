@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MusicCat", "MusicCat\MusicC
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MusicCat-Console", "MusicCat-Console\MusicCat-Console.csproj", "{DE9596FE-3FBE-4A77-A816-C3A8B09D5AA4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MusicCat-Service", "MusicCat-Service\MusicCat-Service.csproj", "{0C25595E-0ACB-44E5-B373-B0740367C567}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MusicCat.Service", "MusicCat.Service\MusicCat.Service.csproj", "{0FD1B77C-4A15-40D5-9E58-A9671E4E5B1E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -23,10 +23,10 @@ Global
 		{DE9596FE-3FBE-4A77-A816-C3A8B09D5AA4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DE9596FE-3FBE-4A77-A816-C3A8B09D5AA4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DE9596FE-3FBE-4A77-A816-C3A8B09D5AA4}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0C25595E-0ACB-44E5-B373-B0740367C567}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0C25595E-0ACB-44E5-B373-B0740367C567}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0C25595E-0ACB-44E5-B373-B0740367C567}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0C25595E-0ACB-44E5-B373-B0740367C567}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0FD1B77C-4A15-40D5-9E58-A9671E4E5B1E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0FD1B77C-4A15-40D5-9E58-A9671E4E5B1E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0FD1B77C-4A15-40D5-9E58-A9671E4E5B1E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0FD1B77C-4A15-40D5-9E58-A9671E4E5B1E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

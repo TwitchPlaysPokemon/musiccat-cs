@@ -4,5 +4,6 @@
         <Nullable>enable</Nullable>
         <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
         <UseArtifactsOutput>true</UseArtifactsOutput>
+        <ImplicitUsings>enable</ImplicitUsings>
     </PropertyGroup>
 </Project>
