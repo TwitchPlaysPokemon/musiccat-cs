@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using ApiListener;
+﻿using ApiListener;
 using static MusicCat.Metadata.MetadataStore;
 
 #nullable disable
@@ -11,7 +7,7 @@ namespace MusicCat.Metadata;
 
 public static class MetadataCommands
 {
-	private static Random rng = new Random();
+	private static readonly Random Rng = new();
 
 	public static Task<int> Count(string category = null) => MetadataStore.Count(category);
 
@@ -48,7 +44,7 @@ public static class MetadataCommands
 		if (int.TryParse(args.Last(), out int result))
 			filterList = (filterList ?? SongList).Where(x => x.ends != null && x.ends >= result).ToList();
 
-		return filterList == null || filterList.Count == 0 ? null : filterList[rng.Next(filterList.Count)];
+		return filterList == null || filterList.Count == 0 ? null : filterList[Rng.Next(filterList.Count)];
 	}
 
 	public static Task<List<(Song song, float match)>> Search(string[] keywords,
@@ -78,9 +74,9 @@ public static class MetadataCommands
 			{
 				string keyword2 = keyword.ToLowerInvariant();
 
-				float subratio1 = haystack.Select(word => keyword2.LevenshteinRatio(word)).Concat(new float[] { 0 }).Max();
+				float subratio1 = haystack.Select(word => keyword2.LevenshteinRatio(word)).Concat([0]).Max();
 				float subratio2 = haystack2.Select(word => keyword2.LevenshteinRatio(word))
-					.Concat(new float[] { 0 }).Max();
+					.Concat([0]).Max();
 
 				float subratio = Math.Max(subratio1, subratio2 * 0.9f);
 				if (subratio > 0.7)

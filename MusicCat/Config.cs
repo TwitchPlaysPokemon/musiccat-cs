@@ -1,7 +1,7 @@
-﻿using Newtonsoft.Json;
-using System.IO;
+﻿#nullable disable
 
-#nullable disable
+using MusicCat.Players;
+using Newtonsoft.Json;
 
 namespace MusicCat;
 
@@ -12,15 +12,15 @@ public class Config
 	public string SongFileDir { get; set; } = null;
 	public string LogDir { get; set; }
 	public string WinampPath { get; set; }
-	public Players.AjaxAMPConfig AjaxAMPConfig { get; set; }
+	public AjaxAMPConfig AjaxAMPConfig { get; set; }
 
-	public static Config DefaultConfig => new Config
+	public static Config DefaultConfig => new()
 	{
 		HttpPort = 7337,
 		MusicBaseDir = "D:\\Music",
 		LogDir = "D:\\Music",
 		WinampPath = "C:\\Program Files (x86)\\Winamp\\winamp.exe",
-		AjaxAMPConfig = new Players.AjaxAMPConfig
+		AjaxAMPConfig = new AjaxAMPConfig
 		{
 			BaseUrl = "http://localhost:5151",
 			MaxVolume = 2.0f

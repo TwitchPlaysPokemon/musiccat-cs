@@ -1,4 +1,4 @@
-﻿using System;
+﻿using ApiListener;
 
 namespace MusicCat;
 
@@ -12,5 +12,5 @@ public static class Listener
 
     public static string CallEndpoint(string name, string[] args) => ApiListener.ApiListener.Commands[name].Function(args);
 
-    public static void AttachLogger(Action<ApiListener.ApiLogMessage> logger) => ApiListener.ApiListener.AttachLogger(logger);
+    public static void AttachLogger(Action<ApiLogMessage> logger) => ApiListener.ApiListener.AttachLogger(logger);
 }

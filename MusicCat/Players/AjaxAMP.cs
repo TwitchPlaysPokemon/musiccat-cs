@@ -1,35 +1,23 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Net.Http;
-using System.Threading.Tasks;
-using System.Timers;
 using System.Xml.Serialization;
 using ApiListener;
 using MusicCat.Metadata;
 using static MusicCat.Metadata.MetadataStore;
+using Timer = System.Timers.Timer;
 
 #nullable disable
 
 namespace MusicCat.Players;
 
-public class AjaxAMP : IPlayer
+public class AjaxAMP(AjaxAMPConfig config) : IPlayer
 {
-	private HttpClient httpClient;
-	private Process winAmp;
-	private float MaxVolume;
-
-	public AjaxAMP(AjaxAMPConfig config)
+	private readonly HttpClient _httpClient = new()
 	{
-		httpClient = new HttpClient
-		{
-			BaseAddress = new Uri(config.BaseUrl)
-		};
-		MaxVolume = config.MaxVolume;
-	}
+		BaseAddress = new Uri(config.BaseUrl)
+	};
+	private Process _winAmp;
+	private readonly float _maxVolume = config.MaxVolume;
 
 	private Task<string> SendCommand(string command, Dictionary<string, string> args = null, bool post = false)
 	{
@@ -39,7 +27,7 @@ public class AjaxAMP : IPlayer
 		{
 			request.Content = new StringContent(argsDigest);
 		}
-		return httpClient.SendAsync(request).Result.Content.ReadAsStringAsync();
+		return _httpClient.SendAsync(request).Result.Content.ReadAsStringAsync();
 	}
 
 	private Task<string> Post(string command, Dictionary<string, string> args = null) => SendCommand(command, args, true);
@@ -48,7 +36,7 @@ public class AjaxAMP : IPlayer
 
 	public async Task<float> GetPosition() => float.Parse(await Get("getposition"));
 
-	public async Task<float> GetVolume() => float.Parse(await Get("getvolume")) / 255f * MaxVolume;
+	public async Task<float> GetVolume() => float.Parse(await Get("getvolume")) / 255f * _maxVolume;
 
 	private async Task<ConsoleStatus> GetStatus()
 	{
@@ -74,8 +62,8 @@ public class AjaxAMP : IPlayer
 		if (!File.Exists(Listener.Config.WinampPath))
 			throw new ApiError("There is no file at the given path.");
 
-		winAmp = new Process { StartInfo = { FileName = Listener.Config.WinampPath } };
-		winAmp.Start();
+		_winAmp = new Process { StartInfo = { FileName = Listener.Config.WinampPath } };
+		_winAmp.Start();
 
 		bool flag = false;
 		while (!flag)
@@ -166,8 +154,8 @@ public class AjaxAMP : IPlayer
 			return value;
 		}
 
-		float newVolume = Clamp(await GetVolume() + level, 0f, MaxVolume);
-		await Post("setvolume", new Dictionary<string, string> { ["level"] = (newVolume / MaxVolume * 255f).ToString() });
+		float newVolume = Clamp(await GetVolume() + level, 0f, _maxVolume);
+		await Post("setvolume", new Dictionary<string, string> { ["level"] = (newVolume / _maxVolume * 255f).ToString() });
 		return newVolume;
 	}
 
@@ -175,7 +163,7 @@ public class AjaxAMP : IPlayer
 
 	~AjaxAMP()
 	{
-		winAmp?.Dispose();
+		_winAmp?.Dispose();
 	}
 }
 

@@ -1,29 +1,25 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
+﻿#nullable disable
+
 using System.Timers;
 using ApiListener;
 using YamlDotNet.Serialization;
-
-#nullable disable
+using Timer = System.Timers.Timer;
 
 namespace MusicCat.Metadata;
 
 public class MetadataStore
 {
-	private static FileSystemWatcher watcher;
-	private static Timer timer;
-	private static Random rng = new Random();
+	private static FileSystemWatcher _watcher;
+	private static Timer _timer;
+	private static readonly Random Rng = new();
 
-	public static List<Song> SongList = new List<Song>();
-	public static Dictionary<string, Timer> Cooldowns = new Dictionary<string, Timer>();
-	private static Action<ApiLogMessage> logger;
+	public static List<Song> SongList = [];
+	public static readonly Dictionary<string, Timer> Cooldowns = new();
+	private static Action<ApiLogMessage> _logger;
 
 	public static Task<int> Count(string category = null) => Task.Run(() => category != null ? SongList.Count(x => x.types.Contains((SongType)Enum.Parse(typeof(SongType), category))) : SongList.Count);
 
-	public static Task<Song> GetRandomSong() => Task.Run(() => SongList[rng.Next(SongList.Count)]);
+	public static Task<Song> GetRandomSong() => Task.Run(() => SongList[Rng.Next(SongList.Count)]);
 
 	public static Task<List<Song>> GetSongListByTag(string tag, List<Song> songList = null) => Task.Run(() =>
 		(songList ?? SongList).Where(x => x.tags != null && x.tags.Contains(tag) && x.canBePlayed).ToList());
@@ -39,16 +35,16 @@ public class MetadataStore
 	public static async void LoadMetadata(Action<ApiLogMessage> logger = null) => await Task.Run(() =>
 	{
 		List<Song> tempList = new List<Song>();
-		if (watcher == null)
+		if (_watcher == null)
 		{
-			MetadataStore.logger = logger;
-			watcher = new FileSystemWatcher(Listener.Config.MusicBaseDir)
+			_logger = logger;
+			_watcher = new FileSystemWatcher(Listener.Config.MusicBaseDir)
 			{
 				NotifyFilter = NotifyFilters.Size,
 				IncludeSubdirectories = true
 			};
-			watcher.Changed += OnFileChanged;
-			watcher.EnableRaisingEvents = true;
+			_watcher.Changed += OnFileChanged;
+			_watcher.EnableRaisingEvents = true;
 		}
 		IDeserializer deserializer = new DeserializerBuilder().Build();
 		foreach (string directory in Directory.EnumerateDirectories(Listener.Config.MusicBaseDir, "*", SearchOption.AllDirectories))
@@ -112,8 +108,8 @@ public class MetadataStore
 	{
 		bool ret = true;
 		IDeserializer deserializer = new DeserializerBuilder().Build();
-		List<string> files = new List<string>();
-		List<string> processed = new List<string>();
+		List<string> files = [];
+		List<string> processed = [];
 		foreach (string directory in Directory.EnumerateDirectories(Listener.Config.MusicBaseDir, "*",
 			         SearchOption.AllDirectories))
 		{
@@ -275,19 +271,19 @@ public class MetadataStore
 
 	private static void OnFileChanged(object sender, FileSystemEventArgs e)
 	{
-		if (timer == null)
+		if (_timer == null)
 		{
-			timer = new Timer(600000);
-			timer.Elapsed += OnTimerElapsed;
-			timer.AutoReset = false;
-			timer.Start();
+			_timer = new Timer(600000);
+			_timer.Elapsed += OnTimerElapsed;
+			_timer.AutoReset = false;
+			_timer.Start();
 		}
 		else
 		{
-			lock (timer)
+			lock (_timer)
 			{
-				timer.Stop();
-				timer.Start();
+				_timer.Stop();
+				_timer.Start();
 			}
 		}
 	}
@@ -295,9 +291,9 @@ public class MetadataStore
 	private static void OnTimerElapsed(object sender, ElapsedEventArgs e)
 	{
 		SongList.Clear();
-		LoadMetadata(logger);
-		timer.Dispose();
-		timer = null;
+		LoadMetadata(_logger);
+		_timer.Dispose();
+		_timer = null;
 	}
 
 	private static List<Song> ParseMetadata(Metadata metadata, string path)
@@ -336,10 +332,10 @@ public class MetadataStore
 
 	~MetadataStore()
 	{
-		if (watcher != null)
+		if (_watcher != null)
 		{
-			watcher.Changed -= OnFileChanged;
-			watcher.Dispose();
+			_watcher.Changed -= OnFileChanged;
+			_watcher.Dispose();
 		}
 
 		foreach (KeyValuePair<string, Timer> kvp in Cooldowns)
@@ -347,6 +343,6 @@ public class MetadataStore
 			kvp.Value.Dispose();
 		}
 
-		timer?.Dispose();
+		_timer?.Dispose();
 	}
 }
