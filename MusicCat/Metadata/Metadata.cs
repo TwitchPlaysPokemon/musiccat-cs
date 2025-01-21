@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using YamlDotNet.Serialization;
 
+#nullable disable
+
 namespace MusicCat.Metadata;
 
 public class Metadata

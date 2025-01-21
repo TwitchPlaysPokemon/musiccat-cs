@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using Newtonsoft.Json;
 using YamlDotNet.Serialization;
 
+#nullable disable
+
 namespace MusicCat.Metadata;
 
 public class Game

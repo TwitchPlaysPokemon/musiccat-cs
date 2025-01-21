@@ -6,6 +6,8 @@ using ApiListener;
 using MusicCat.Players;
 using static ApiListener.ApiLogger;
 
+#nullable disable
+
 namespace MusicCat.API;
 
 public class PlayerControl : ApiProvider

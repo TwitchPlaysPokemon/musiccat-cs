@@ -12,8 +12,6 @@ namespace ConsoleWrapper;
 
 class Program
 {
-	private static FileSystemWatcher watcher;
-
 	static void Main(string[] args)
 	{
 		var monitor = new object();
@@ -46,7 +44,7 @@ class Program
 			return;
 		}
 
-		watcher = new FileSystemWatcher(Environment.CurrentDirectory, "MusicCatConfig.json")
+		FileSystemWatcher watcher = new FileSystemWatcher(Environment.CurrentDirectory, "MusicCatConfig.json")
 		{
 			NotifyFilter = NotifyFilters.LastWrite
 		};

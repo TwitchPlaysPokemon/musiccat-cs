@@ -2,6 +2,8 @@
 using System.IO;
 using ApiListener;
 
+#nullable disable
+
 namespace ConsoleWrapper;
 
 public static class Logger

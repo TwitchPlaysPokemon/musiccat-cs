@@ -1,6 +1,8 @@
 ﻿using Newtonsoft.Json;
 using System.IO;
 
+#nullable disable
+
 namespace MusicCat;
 
 public class Config
