@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Xml.Serialization;
 
+#nullable disable
+
 namespace MusicCat;
 
 [XmlRoot(ElementName = "console")]

@@ -12,6 +12,8 @@ using ApiListener;
 using MusicCat.Metadata;
 using static MusicCat.Metadata.MetadataStore;
 
+#nullable disable
+
 namespace MusicCat.Players;
 
 public class AjaxAMP : IPlayer

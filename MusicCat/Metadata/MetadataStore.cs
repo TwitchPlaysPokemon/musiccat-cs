@@ -7,6 +7,8 @@ using System.Timers;
 using ApiListener;
 using YamlDotNet.Serialization;
 
+#nullable disable
+
 namespace MusicCat.Metadata;
 
 public class MetadataStore

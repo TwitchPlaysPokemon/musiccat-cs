@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using ApiListener;
 using static MusicCat.Metadata.MetadataStore;
 
+#nullable disable
+
 namespace MusicCat.Metadata;
 
 public static class MetadataCommands
