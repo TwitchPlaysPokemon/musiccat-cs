@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Diagnostics.Tracing;
 using System.IO;
 using System.Threading;
-using System.Threading.Tasks;
 using ApiListener;
 using MusicCat;
 using MusicCat.Metadata;
