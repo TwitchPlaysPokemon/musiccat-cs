@@ -56,12 +56,16 @@ public class MetadataStore
 	{
 		MetadataLoadResult result = MusicLibrary.ReadMetadata(Listener.Config.MusicBaseDir, Listener.Config.SongFileDir).Result;
 
+		var warnings = new List<string>(result.Warnings);
+		
+		if (showUnused)
+			foreach (var unusedSongFile in result.UnusedSongFiles) 
+				warnings.Add($"Unused song file: {unusedSongFile}");
+
 		foreach (string warning in result.Warnings) 
 			logger.LogWarning(warning);
 		
-		if (!showUnused) return result.Warnings.Count == 0;
-
-		return result.Warnings.Count == 0; // TODO unused song files
+		return warnings.Count == 0;
 	}
 
 	private static void OnFileChanged(object sender, FileSystemEventArgs e)

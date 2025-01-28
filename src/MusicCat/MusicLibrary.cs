@@ -38,15 +38,16 @@ public record Game(
 
 public record MetadataLoadResult(
     IList<string> Warnings,
-    IDictionary<string, Song> Songs);
+    IDictionary<string, Song> Songs,
+    ISet<string> UnusedSongFiles);
 
 public partial class MusicLibrary
 {
     public static async Task<MetadataLoadResult> ReadMetadata(
         string musiclibraryPath,
-        string? musicfilesPath = null)
+        string? songfilesPath = null)
     {
-        musicfilesPath ??= musiclibraryPath;
+        songfilesPath ??= musiclibraryPath;
 
         var warnings = new ConcurrentBag<string>();
         HashSet<string> existingSongFiles = [];
@@ -54,8 +55,8 @@ public partial class MusicLibrary
         var songFilesTask = Task.Run(() =>
         {
             var songFilePaths = Directory
-                .EnumerateFiles(musicfilesPath, "*", SearchOption.AllDirectories)
-                .Select(f => Path.GetRelativePath(musicfilesPath, f));
+                .EnumerateFiles(songfilesPath, "*", SearchOption.AllDirectories)
+                .Select(f => Path.GetRelativePath(songfilesPath, f));
             foreach (string songFile in songFilePaths)
                 existingSongFiles.Add(songFile);
         });
@@ -68,10 +69,22 @@ public partial class MusicLibrary
             if (!songsDict.TryAdd(song.Id, song))
                 warnings.Add($"{song.Id}: Song ID is used multiple times: {song.Path} vs {songsDict[song.Id].Path}");
 
-        foreach (string missingSongFile in songs.Select(s => s.Path).Except(existingSongFiles))
+        var usedSongFiles = songs.Select(s => s.Path).ToHashSet();
+        foreach (string missingSongFile in usedSongFiles.Except(existingSongFiles))
             warnings.Add($"Missing song file: {missingSongFile}");
 
-        return new MetadataLoadResult(warnings.ToList(), songsDict);
+        HashSet<string> ignoreUnrelated = [".txt", ".png", ".jpg", ".ini", ".sh"];
+        HashSet<string> ignoreSoundFonts = [".usflib", ".gsflib", ".2sflib", ".ncsflib"];
+        HashSet<string> unusedSongFiles = existingSongFiles
+            .Except(usedSongFiles)
+            .Where(file =>
+            {
+                string extension = Path.GetExtension(file).ToLowerInvariant();
+                return !ignoreUnrelated.Contains(extension) &&
+                       !ignoreSoundFonts.Contains(extension);
+            })
+            .ToHashSet();
+        return new MetadataLoadResult(warnings.ToList(), songsDict, unusedSongFiles);
     }
 
     public static async Task<IReadOnlyCollection<Song>> ReadMetadataUnvalidated(
