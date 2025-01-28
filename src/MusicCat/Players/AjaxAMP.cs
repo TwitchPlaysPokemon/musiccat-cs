@@ -2,7 +2,6 @@
 using System.Globalization;
 using System.Xml.Serialization;
 using ApiListener;
-using MusicCat.Metadata;
 using static MusicCat.Metadata.MetadataStore;
 using Timer = System.Timers.Timer;
 
@@ -120,10 +119,8 @@ public class AjaxAMP(AjaxAMPConfig config) : IPlayer
 	/// <returns></returns>
 	public async Task PlayID(string id)
 	{
-		Song song = SongList.First(x => x.id == id);
-		if (song?.path == null)
-			throw new ApiError("Song has no path");
-		await PlayFile(song.path);
+		Song song = SongList.First(x => x.Id == id);
+		await PlayFile(song.Path);
 
 		if (Cooldowns.TryGetValue(id, out Timer timer2))
 		{
@@ -132,8 +129,9 @@ public class AjaxAMP(AjaxAMPConfig config) : IPlayer
 		}
 		Timer timer = new Timer(6.48e+7);
 		timer.Elapsed  += delegate { CooldownElapsed(id); };
-		song.canBePlayed = false;
-		song.cooldownExpiry = DateTime.UtcNow.AddMilliseconds(6.48e+7);
+		// TODO re-implement cooldown handling
+		// song.canBePlayed = false;
+		// song.cooldownExpiry = DateTime.UtcNow.AddMilliseconds(6.48e+7);
 		timer.AutoReset = false;
 		timer.Start();
 		Cooldowns.Add(id, timer);

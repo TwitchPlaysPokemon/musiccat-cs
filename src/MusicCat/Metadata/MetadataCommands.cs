@@ -42,7 +42,7 @@ public static class MetadataCommands
 		}
 
 		if (int.TryParse(args.Last(), out int result))
-			filterList = (filterList ?? SongList).Where(x => x.ends != null && x.ends >= result).ToList();
+			filterList = (filterList ?? SongList).Where(x => x.Ends != null && x.Ends.Any(end => end.TotalSeconds >= result)).ToList();
 
 		return filterList == null || filterList.Count == 0 ? null : filterList[Rng.Next(filterList.Count)];
 	}
@@ -61,13 +61,11 @@ public static class MetadataCommands
 		foreach (Song song in SongList)
 		{
 			if (requiredTag != null)
-				if (song.tags == null || !song.tags.Contains(requiredTag))
+				if (song.Tags == null || !song.Tags.Contains(requiredTag))
 					continue;
 
-			if (song.path == null) continue;
-
-			string[] haystack = song.title.ToLowerInvariant().Split(' ');
-			string[] haystack2 = song.game.title.ToLowerInvariant().Split(' ');
+			string[] haystack = song.Title.ToLowerInvariant().Split(' ');
+			string[] haystack2 = song.Game.Title.ToLowerInvariant().Split(' ');
 
 			float ratio = 0;
 			foreach (string keyword in keywords)
