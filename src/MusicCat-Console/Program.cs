@@ -1,4 +1,4 @@
-﻿using ApiListener;
+﻿using Microsoft.Extensions.Logging;
 using MusicCat;
 using MusicCat.Metadata;
 using static ConsoleWrapper.Logger;
@@ -7,8 +7,18 @@ namespace ConsoleWrapper;
 
 internal static class Program
 {
+	private static ILogger _logger = null!;
+
 	private static void Main(string[] args)
 	{
+		var loggerFactory = LoggerFactory.Create(builder =>
+		{
+			const LogLevel minLogLevel = LogLevel.Debug;
+			builder.SetMinimumLevel(minLogLevel);
+			builder.AddConsole();
+		});
+		_logger = loggerFactory.CreateLogger("");
+
 		var monitor = new object();
 		try
 		{
@@ -16,26 +26,26 @@ internal static class Program
 		}
 		catch (Exception e)
 		{
-			Log(new ApiLogMessage($"Failed to de-serialize config, using default config instead. Exception: {e.Message}{Environment.NewLine}{e.StackTrace}", ApiLogLevel.Warning));
+			_logger.LogWarning($"Failed to de-serialize config, using default config instead. Exception: {e.Message}{Environment.NewLine}{e.StackTrace}");
 			Listener.Config = Config.DefaultConfig;
 		}
 
 		if ((args.Length == 1 || args.Length == 2) && args[0].ToLowerInvariant().Trim() == "verify")
 		{
 			bool showUnused = args.Length == 2 && args[1].ToLowerInvariant().Trim() == "--showunused";
-			bool result = MetadataStore.VerifyMetadata(showUnused, Log);
+			bool result = MetadataStore.VerifyMetadata(showUnused, _logger);
 			if (result)
-				Log(new ApiLogMessage("No errors.", ApiLogLevel.Info));
+				_logger.LogInformation("No errors.");
 			return;
 		}
 
 		try
 		{
-			MetadataStore.LoadMetadata(Log);
+			MetadataStore.LoadMetadata(_logger);
 		}
 		catch (Exception e)
 		{
-			Log(new ApiLogMessage($"Failed to load metadata. Exception: {e.Message}{Environment.NewLine}{e.StackTrace}", ApiLogLevel.Critical));
+			_logger.LogCritical($"Failed to load metadata. Exception: {e.Message}{Environment.NewLine}{e.StackTrace}");
 			return;
 		}
 
@@ -76,17 +86,17 @@ internal static class Program
 		}
 		catch (Exception ex)
 		{
-			Log(new ApiLogMessage($"Failed to de-serialize config, using current config instead. Exception: {ex.Message}{Environment.NewLine}{ex.StackTrace}", ApiLogLevel.Warning));
+			_logger.LogWarning($"Failed to de-serialize config, using current config instead. Exception: {ex.Message}{Environment.NewLine}{ex.StackTrace}");
 		}
 		Listener.Stop();
 		Listener.Start();
 		try
 		{
-			MetadataStore.LoadMetadata(Log);
+			MetadataStore.LoadMetadata(_logger);
 		}
 		catch (Exception ex)
 		{
-			Log(new ApiLogMessage($"Failed to load metadata. Exception: {ex.Message}{Environment.NewLine}{ex.StackTrace}", ApiLogLevel.Critical));
+			_logger.LogCritical($"Failed to load metadata. Exception: {ex.Message}{Environment.NewLine}{ex.StackTrace}");
 		}
 	}
 }

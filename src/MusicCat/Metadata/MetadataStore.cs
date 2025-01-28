@@ -1,7 +1,7 @@
 ﻿#nullable disable
 
 using System.Timers;
-using ApiListener;
+using Microsoft.Extensions.Logging;
 using Timer = System.Timers.Timer;
 
 namespace MusicCat.Metadata;
@@ -14,7 +14,7 @@ public class MetadataStore
 
 	public static List<Song> SongList = [];
 	public static readonly Dictionary<string, Timer> Cooldowns = new();
-	private static Action<ApiLogMessage> _logger;
+	private static ILogger _logger;
 
 	public static Task<int> Count(string category = null) => Task.Run(() => category != null ? SongList.Count(x => x.Types.Contains((SongType)Enum.Parse(typeof(SongType), category))) : SongList.Count);
 
@@ -31,7 +31,7 @@ public class MetadataStore
 	public static Task<List<Song>> GetSongListByGame(string game, List<Song> songList = null) => Task.Run(() =>
 		(songList ?? SongList).Where(x => x.Game.Id == game && x.canBePlayed).ToList());
 
-	public static async void LoadMetadata(Action<ApiLogMessage> logger = null) => await Task.Run(() =>
+	public static async void LoadMetadata(ILogger logger) => await Task.Run(() =>
 	{
 		if (_watcher == null)
 		{
@@ -46,14 +46,19 @@ public class MetadataStore
 		}
 
 		MetadataLoadResult result = MusicLibrary.ReadMetadata(Listener.Config.MusicBaseDir, Listener.Config.SongFileDir).Result;
+		foreach (string warning in result.Warnings) 
+			logger.LogWarning(warning);
 
 		SongList = result.Songs.Values.ToList();
 	});
 
-	public static bool VerifyMetadata(bool showUnused, Action<ApiLogMessage> logger = null)
+	public static bool VerifyMetadata(bool showUnused, ILogger logger)
 	{
 		MetadataLoadResult result = MusicLibrary.ReadMetadata(Listener.Config.MusicBaseDir, Listener.Config.SongFileDir).Result;
 
+		foreach (string warning in result.Warnings) 
+			logger.LogWarning(warning);
+		
 		if (!showUnused) return result.Warnings.Count == 0;
 
 		return result.Warnings.Count == 0; // TODO unused song files

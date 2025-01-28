@@ -3,10 +3,8 @@ using MusicCat.Metadata;
 
 namespace MusicCat.Service;
 
-public class Worker(ILogger<Worker> logger) : BackgroundService
+public class Worker(ILogger logger) : BackgroundService
 {
-    private readonly ILogger<Worker> _logger = logger;
-
     private const ApiLogLevel DisplayLogLevel = ApiLogLevel.Debug;
 
     private FileStream? _logStream;
@@ -25,7 +23,7 @@ public class Worker(ILogger<Worker> logger) : BackgroundService
 
         try
         {
-            MetadataStore.LoadMetadata();
+            MetadataStore.LoadMetadata(logger);
         }
         catch (Exception e)
         {
@@ -83,7 +81,7 @@ public class Worker(ILogger<Worker> logger) : BackgroundService
         Listener.Start();
         try
         {
-            MetadataStore.LoadMetadata();
+            MetadataStore.LoadMetadata(logger);
         }
         catch (Exception ex)
         {
