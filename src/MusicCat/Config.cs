@@ -1,7 +1,7 @@
 ﻿#nullable disable
 
+using System.Text.Json;
 using MusicCat.Players;
-using Newtonsoft.Json;
 
 namespace MusicCat;
 
@@ -30,7 +30,7 @@ public class Config
 	public static Config ParseConfig(out FileStream logStream, out StreamWriter logWriter)
 	{
 		string configJson = File.ReadAllText("MusicCatConfig.json");
-		Config config = JsonConvert.DeserializeObject<Config>(configJson);
+		Config config = JsonSerializer.Deserialize<Config>(configJson);
 		if (!string.IsNullOrWhiteSpace(config.LogDir) &&
 		    !File.Exists(Path.Combine(config.LogDir, "MusicCatLog.txt")))
 		{
