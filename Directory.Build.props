@@ -5,5 +5,6 @@
         <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
         <UseArtifactsOutput>true</UseArtifactsOutput>
         <ImplicitUsings>enable</ImplicitUsings>
+        <InvariantGlobalization>true</InvariantGlobalization>
     </PropertyGroup>
 </Project>
