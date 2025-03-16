@@ -65,4 +65,10 @@ public class MusicLibrary(
             ? songs.Count
             : songs.Values.Count(song => song.Types.Contains(songType.Value));
     }
+
+    public async Task<Song?> Get(string id)
+    {
+        var songsDict = await _songs.Task;
+        return songsDict.TryGetValue(id, out var song) ? song : null;
+    }
 }

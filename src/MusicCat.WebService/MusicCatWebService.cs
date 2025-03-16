@@ -1,6 +1,7 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
 using MusicCat.Model;
+using MusicCat.Players;
 
 namespace MusicCat.WebService;
 
@@ -43,6 +44,15 @@ public static class MusicCatWebService
             if (task.IsFaulted) logger.LogError(task.Exception, "Music Library load faulted");
         });
 
+        AddMusicCatEndpoints(musicLibrary, app);
+        IPlayer player = null!; // TODO
+        AddPlayerEndpoints(player, app);
+
+        return app;
+    }
+
+    public static void AddMusicCatEndpoints(MusicLibrary musicLibrary, WebApplication app)
+    {
         app.MapGet("/musiclibrary/verify", async (bool reportUnusedSongFiles = false) =>
             {
                 IList<string> warnings = await musicLibrary.Verify(reportUnusedSongFiles);
@@ -50,7 +60,7 @@ public static class MusicCatWebService
             }).WithDescription("Like /reload, but a dry-run. So it just returns all problems that would occur")
             .WithOpenApi();
 
-        app.MapGet("/musiclibrary/reload", async () =>
+        app.MapPost("/musiclibrary/reload", async () =>
             {
                 IList<string> warnings = await musicLibrary.Load();
                 return string.Join('\n', warnings);
@@ -67,7 +77,40 @@ public static class MusicCatWebService
                 return await musicLibrary.Count(songType);
             }).WithDescription("Counts all currently enabled songs in the library, optionally filtered to one type")
             .WithOpenApi();
+    }
 
-        return app;
+    public static void AddPlayerEndpoints(IPlayer player, WebApplication app)
+    {
+        app.MapPost("/player/launch",
+            async () => await player.Launch());
+        app.MapPost("/player/play",
+            async () => await player.Play());
+        app.MapPost("/player/pause",
+            async () => await player.Pause());
+        app.MapPost("/player/stop",
+            async () => await player.Stop());
+
+        app.MapPost("/player/play/{id}",
+            async (string id) => await player.PlayID(id));
+        app.MapPost("/player/play-file/{filename}",
+            async (string filename) => await player.PlayFile(filename));
+
+        app.MapGet("/player/volume",
+            async () => await player.GetVolume());
+        app.MapPut("/player/volume/{level:float}", async Task (float level) =>
+        {
+            if (level is < 0 or > 1)
+                throw new BadHttpRequestException("player volume level must be between 0 and 1");
+            await player.SetVolume(level);
+        });
+
+        app.MapGet("/player/position",
+            async () => await player.GetPosition());
+        app.MapPut("/player/position/{pos:float}", async Task (float pos) =>
+        {
+            if (pos is < 0 or > 1)
+                throw new BadHttpRequestException("player seek position must be between 0 and 1");
+            await player.SetPosition(pos);
+        });
     }
 }
