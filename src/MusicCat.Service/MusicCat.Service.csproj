@@ -9,6 +9,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\MusicCat\MusicCat.csproj" />
+      <ProjectReference Include="..\MusicCat.WebService\MusicCat.WebService.csproj" />
     </ItemGroup>
 </Project>
