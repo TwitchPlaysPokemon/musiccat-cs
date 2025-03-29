@@ -7,7 +7,7 @@ using MusicCat.Model;
 
 namespace MusicCat.Players;
 
-public class AjaxAMP(AjaxAMPConfig config, string winampPath, MusicLibrary musicLibrary) : IPlayer
+public class AjaxAMP(AjaxAMPConfig config, string winampPath, string songFilePath, MusicLibrary musicLibrary) : IPlayer
 {
 	private readonly HttpClient _httpClient = new()
 	{
@@ -87,9 +87,10 @@ public class AjaxAMP(AjaxAMPConfig config, string winampPath, MusicLibrary music
 	/// <returns></returns>
 	public async Task PlayFile(string filename)
 	{
+		var fullPath = Path.GetFullPath(Path.Join(songFilePath, filename));
 		await Post("playfile", new Dictionary<string, string>
 		{
-			["filename"] = filename,
+			["filename"] = fullPath,
 			["title"] = filename
 		});
 
@@ -124,22 +125,9 @@ public class AjaxAMP(AjaxAMPConfig config, string winampPath, MusicLibrary music
 
 	public Task SetPosition(float percent) => Post("setposition", new Dictionary<string, string> { ["pos"] = percent.ToString() });
 
-	public async Task<float> SetVolume(float level)
+	public async Task SetVolume(float level)
 	{
-		float Clamp(float value, float min, float max)
-		{
-			if (value < min)
-				return min;
-
-			if (value > max)
-				return max;
-
-			return value;
-		}
-
-		float newVolume = Clamp(await GetVolume() + level, 0f, _maxVolume);
-		await Post("setvolume", new Dictionary<string, string> { ["level"] = (newVolume / _maxVolume * 255f).ToString() });
-		return newVolume;
+		await Post("setvolume", new Dictionary<string, string> { ["level"] = (level / _maxVolume * 255f).ToString() });
 	}
 
 	public Task Stop() => Post("stop");
@@ -152,6 +140,6 @@ public class AjaxAMP(AjaxAMPConfig config, string winampPath, MusicLibrary music
 
 public class AjaxAMPConfig
 {
-	public string BaseUrl { get; init; }
+	public string BaseUrl { get; init; } = "http://localhost:5151/";
 	public float MaxVolume { get; init; } = 2.0f;
 }

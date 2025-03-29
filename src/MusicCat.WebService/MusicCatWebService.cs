@@ -11,17 +11,19 @@ public static class MusicCatWebService
     {
         var builder = WebApplication.CreateBuilder(args);
 
-        var config = new Config(); // TODO read from config file json
+        var config = Config.LoadFromConfiguration(builder.Configuration);
 
-        const LogLevel minLogLevel = LogLevel.Debug;
-        builder.Logging.SetMinimumLevel(minLogLevel);
+        builder.Logging.ClearProviders();
         builder.Logging.AddConsole();
-        if (config.LogPath != null)
+        var loggingConfig = builder.Configuration.GetSection("Logging");
+        if (loggingConfig.Exists()) 
+            builder.Logging.AddConfiguration(loggingConfig);
+        var fileLoggingPath = builder.Configuration.GetValue<string>("Logging:FileLogging:Path");
+        if (!string.IsNullOrEmpty(fileLoggingPath))
         {
             builder.Logging.AddFile(
-                pathFormat: Path.Combine(config.LogPath, "musiccat-{Date}.log"),
-                outputTemplate: "{Timestamp:o} [{Level:u3}] {Message}{NewLine}{Exception}",
-                minimumLevel: minLogLevel);
+                pathFormat: Path.Combine(fileLoggingPath, "musiccat-{Date}.log"),
+                outputTemplate: "{Timestamp:o} [{Level:u3}] {Message}{NewLine}{Exception}");
         }
         else
         {
@@ -60,7 +62,7 @@ public static class MusicCatWebService
         });
 
         AddMusicCatEndpoints(musicLibrary, app);
-        IPlayer player = new AjaxAMP(config.AjaxAMPConfig, config.WinampPath, musicLibrary);
+        IPlayer player = new AjaxAMP(config.AjaxAMP, config.WinampPath, config.SongFileDir, musicLibrary);
         AddPlayerEndpoints(player, app);
 
         return app;

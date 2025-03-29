@@ -27,8 +27,7 @@ public interface IPlayer
 	/// Sets music player volume
 	/// </summary>
 	/// <param name="level">0 to 1</param>
-	/// <returns>the new volume, 0 to max</returns>
-	Task<float> SetVolume(float level);
+	Task SetVolume(float level);
 
 	/// <summary>
 	/// Gets music player volume
