@@ -8,8 +8,4 @@ public record Song(
     ISet<string>? Tags,
     Game Game,
     string Path
-)
-{
-    // TODO re-implement cooldown handling
-    public bool canBePlayed => true; // TODO remove
-}
+);
