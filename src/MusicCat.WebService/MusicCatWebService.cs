@@ -11,6 +11,23 @@ public static class MusicCatWebService
     {
         var builder = WebApplication.CreateBuilder(args);
 
+        var config = new Config(); // TODO read from config file json
+
+        const LogLevel minLogLevel = LogLevel.Debug;
+        builder.Logging.SetMinimumLevel(minLogLevel);
+        builder.Logging.AddConsole();
+        if (config.LogPath != null)
+        {
+            builder.Logging.AddFile(
+                pathFormat: Path.Combine(config.LogPath, "musiccat-{Date}.log"),
+                outputTemplate: "{Timestamp:o} [{Level:u3}] {Message}{NewLine}{Exception}",
+                minimumLevel: minLogLevel);
+        }
+        else
+        {
+            Console.Error.WriteLine("no logging path is configured, logs will only be printed to console");
+        }
+        
         // Add services to the container.
         // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
         builder.Services.AddEndpointsApiExplorer();
@@ -24,7 +41,6 @@ public static class MusicCatWebService
         });
 
         WebApplication app = builder.Build();
-        var logger = app.Services.GetService<ILoggerFactory>()!.CreateLogger("MusicCatWebService");
 
         // Configure the HTTP request pipeline.
         if (app.Environment.IsDevelopment())
@@ -33,19 +49,18 @@ public static class MusicCatWebService
             app.UseSwaggerUI();
         }
 
-        // TODO hook up config
         var musicLibrary = new MusicLibrary(
             app.Services.GetService<ILogger<MusicLibrary>>()!,
-            musiclibraryPath: "S:/projects/musicLibrary",
-            songfilesPath: "V:/musiclibrary");
+            musiclibraryPath: config.MusicBaseDir!, // TODO should not be nullable
+            songfilesPath: config.SongFileDir);
         var loadTask = musicLibrary.Load(); // Start loading asynchronously, we don't need to wait for this to finish.
         loadTask.ContinueWith(task => // But if it fails, we want to know about it
         {
-            if (task.IsFaulted) logger.LogError(task.Exception, "Music Library load faulted");
+            if (task.IsFaulted) app.Logger.LogError(task.Exception, "Music Library load faulted");
         });
 
         AddMusicCatEndpoints(musicLibrary, app);
-        IPlayer player = null!; // TODO
+        IPlayer player = new AjaxAMP(config.AjaxAMPConfig, config.WinampPath, musicLibrary);
         AddPlayerEndpoints(player, app);
 
         return app;

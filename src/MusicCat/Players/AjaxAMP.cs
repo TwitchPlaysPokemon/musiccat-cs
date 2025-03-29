@@ -1,15 +1,13 @@
-﻿using System.Diagnostics;
+﻿#nullable disable
+
+using System.Diagnostics;
 using System.Globalization;
 using System.Xml.Serialization;
-using ApiListener;
-using static MusicCat.Metadata.MetadataStore;
-using Timer = System.Timers.Timer;
-
-#nullable disable
+using MusicCat.Model;
 
 namespace MusicCat.Players;
 
-public class AjaxAMP(AjaxAMPConfig config) : IPlayer
+public class AjaxAMP(AjaxAMPConfig config, string winampPath, MusicLibrary musicLibrary) : IPlayer
 {
 	private readonly HttpClient _httpClient = new()
 	{
@@ -55,13 +53,13 @@ public class AjaxAMP(AjaxAMPConfig config) : IPlayer
 		if (Process.GetProcessesByName("Winamp").Length > 0)
 			return;
 
-		if (string.IsNullOrEmpty(Listener.Config.WinampPath))
-			throw new ApiError("Winamp path in the config is not set.");
+		if (string.IsNullOrEmpty(winampPath))
+			throw new Exception("Winamp path in the config is not set."); // TODO specific exception?
 
-		if (!File.Exists(Listener.Config.WinampPath))
-			throw new ApiError("There is no file at the given path.");
+		if (!File.Exists(winampPath))
+			throw new Exception("There is no file at the given path.");
 
-		_winAmp = new Process { StartInfo = { FileName = Listener.Config.WinampPath } };
+		_winAmp = new Process { StartInfo = { FileName = winampPath } };
 		_winAmp.Start();
 
 		bool flag = false;
@@ -102,14 +100,14 @@ public class AjaxAMP(AjaxAMPConfig config) : IPlayer
 		float position2 = await GetPosition();
 
 		if (position1 == position2)
-			throw new ApiError("Failed to play given file.");
+			throw new Exception("Failed to play given file.");
 
 		await Task.Delay(1000);
 
 		ConsoleStatus status = await GetStatus();
 		Console.WriteLine(status.Title);
 		if (status.Filename != filename)
-			throw new ApiError($"Failed to play given file. Filename: {status.Title}");
+			throw new Exception($"Failed to play given file. Filename: {status.Title}");
 	}
 
 	/// <summary>
@@ -119,22 +117,9 @@ public class AjaxAMP(AjaxAMPConfig config) : IPlayer
 	/// <returns></returns>
 	public async Task PlayID(string id)
 	{
-		Song song = SongList.First(x => x.Id == id);
+		Song song = await musicLibrary.Get(id)
+		            ?? throw new Exception($"Could not find song with id: {id}");
 		await PlayFile(song.Path);
-
-		if (Cooldowns.TryGetValue(id, out Timer timer2))
-		{
-			timer2.Dispose();
-			Cooldowns.Remove(id);
-		}
-		Timer timer = new Timer(6.48e+7);
-		timer.Elapsed  += delegate { CooldownElapsed(id); };
-		// TODO re-implement cooldown handling
-		// song.canBePlayed = false;
-		// song.cooldownExpiry = DateTime.UtcNow.AddMilliseconds(6.48e+7);
-		timer.AutoReset = false;
-		timer.Start();
-		Cooldowns.Add(id, timer);
 	}
 
 	public Task SetPosition(float percent) => Post("setposition", new Dictionary<string, string> { ["pos"] = percent.ToString() });
@@ -167,6 +152,6 @@ public class AjaxAMP(AjaxAMPConfig config) : IPlayer
 
 public class AjaxAMPConfig
 {
-	public string BaseUrl { get; set; }
-	public float MaxVolume { get; set; } = 2.0f;
+	public string BaseUrl { get; init; }
+	public float MaxVolume { get; init; } = 2.0f;
 }
