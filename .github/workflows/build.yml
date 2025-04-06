@@ -1,0 +1,25 @@
+name: build
+
+on: [ push, pull_request ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - uses: actions/checkout@v4
+      - name: Build MusicCat
+        run: dotnet build
+      - name: Publish MusicCat for Windows
+        run: dotnet publish -c Release -r win-x64
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: 'MusicCat-win-x64'
+          path: 'artifacts/publish/MusicCat.WebService/release_win-x64'
+          if-no-files-found: 'error'
