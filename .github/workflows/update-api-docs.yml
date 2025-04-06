@@ -1,0 +1,38 @@
+name: update-api-docs
+
+on:
+  push:
+    branches: [ master ]
+    paths:
+      - 'src/**/*.cs'
+      - '.github/workflows/update-api-docs.yml'
+
+jobs:
+  update-docs:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Build MusicCat
+        run: dotnet build
+
+      - name: Generate OpenAPI Specification
+        run: |
+          dotnet tool install -g Microsoft.dotnet-openapi
+          dotnet swagger tofile --output ./api-spec.json ./artifacts/bin/MusicCat.WebService/debug/MusicCat.WebService.dll v1
+
+      - name: Commit changes if needed
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add ./api-spec.json
+          git diff --quiet && git diff --staged --quiet || git commit -m "Update generated OpenAPI specification"
+          git push

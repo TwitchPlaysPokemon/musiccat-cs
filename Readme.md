@@ -67,23 +67,5 @@ To uninstall the service (requires Powershell 6+):
 
 ## API Endpoints
 
-MusicCat provides the following API endpoints:
-
-### Music Library Endpoints
-
-- `GET /musiclibrary/verify` - Verifies the music library without loading it
-- `POST /musiclibrary/reload` - Reloads the music library from disk
-- `GET /musiclibrary/count` - Counts songs in the library, optionally filtered by type (e.g. `?category=betting`)
-
-### Player Endpoints
-
-- `POST /player/launch` - Launch WinAMP if not already running
-- `POST /player/play` - Play the current track
-- `POST /player/pause` - Pause playback
-- `POST /player/stop` - Stop playback
-- `POST /player/play/{id}` - Play a specific song by ID
-- `POST /player/play-file/{filename}` - Play a specific file
-- `GET /player/volume` - Get current volume level
-- `PUT /player/volume/{level}` - Set volume level (0.0-1.0)
-- `GET /player/position` - Get current playback position
-- `PUT /player/position/{pos}` - Set playback position (0.0-1.0)
+To see the API documentation, please see the OpenAPI specification [api-spec.json](api-spec.json).
+You may use online tools to parse and visualize them for you, e.g. [ReDoc](https://redocly.github.io/redoc/?url=https://github.com/TwitchPlaysPokemon/musiccat-cs/blob/master/api-spec.json)
