@@ -4,10 +4,6 @@ using MusicCat;
 using MusicCat.Players;
 using MusicCat.WebService;
 
-// When we're running as a service, we don't want our working directory to be C:/Windows/system32.
-// Having configured paths be relative to the executable file is a more intuitive default.
-Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
-
 var builder = WebApplication.CreateBuilder(args);
 
 // Makes it possible to install and run MusicCat as a Windows Service
