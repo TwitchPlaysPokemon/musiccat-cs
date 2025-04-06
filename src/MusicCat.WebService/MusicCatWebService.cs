@@ -10,6 +10,7 @@ public static class MusicCatWebService
     public static WebApplication BuildWebApplication(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
+        builder.Services.AddWindowsService(options => options.ServiceName = "MusicCat");
 
         var config = Config.LoadFromConfiguration(builder.Configuration);
 
@@ -18,7 +19,7 @@ public static class MusicCatWebService
         var loggingConfig = builder.Configuration.GetSection("Logging");
         if (loggingConfig.Exists()) 
             builder.Logging.AddConfiguration(loggingConfig);
-        var fileLoggingPath = builder.Configuration.GetValue<string>("Logging:FileLogging:Path");
+        var fileLoggingPath = builder.Configuration.GetValue<string>("Logging:LogFilePath");
         if (!string.IsNullOrEmpty(fileLoggingPath))
         {
             builder.Logging.AddFile(
@@ -29,9 +30,7 @@ public static class MusicCatWebService
         {
             Console.Error.WriteLine("no logging path is configured, logs will only be printed to console");
         }
-        
-        // Add services to the container.
-        // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
 
@@ -44,12 +43,10 @@ public static class MusicCatWebService
 
         WebApplication app = builder.Build();
 
-        // Configure the HTTP request pipeline.
-        if (app.Environment.IsDevelopment())
-        {
-            app.UseSwagger();
-            app.UseSwaggerUI();
-        }
+        app.UseSwagger();
+        app.UseSwaggerUI();
+        // make swagger-ui our index page since we're just a web service anyway
+        app.MapGet("/", () => Results.Redirect("/swagger"));
 
         var musicLibrary = new MusicLibrary(
             app.Services.GetService<ILogger<MusicLibrary>>()!,
