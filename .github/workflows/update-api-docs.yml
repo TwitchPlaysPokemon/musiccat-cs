@@ -27,7 +27,7 @@ jobs:
       - name: Generate OpenAPI Specification
         run: |
           dotnet tool install -g Swashbuckle.AspNetCore.Cli
-          dotnet swagger tofile --output ./api-spec.json ./artifacts/bin/MusicCat.WebService/debug/MusicCat.WebService.dll v1
+          swagger tofile --output ./api-spec.json ./artifacts/bin/MusicCat.WebService/debug/MusicCat.WebService.dll v1
 
       - name: Commit changes if needed
         run: |
