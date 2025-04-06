@@ -49,36 +49,39 @@ public static class MusicCatWebService
 
     public static void AddPlayerEndpoints(IPlayer player, WebApplication app)
     {
-        app.MapPost("/player/launch",
-            async () => await player.Launch());
-        app.MapPost("/player/play",
-            async () => await player.Play());
-        app.MapPost("/player/pause",
-            async () => await player.Pause());
-        app.MapPost("/player/stop",
-            async () => await player.Stop());
+        app.MapPost("/player/launch", async () => await player.Launch())
+            .WithDescription("Launches WinAMP, if not already running");
+        app.MapPost("/player/play", async () => await player.Play())
+            .WithDescription("Starts or resumes playing the current song");
+        app.MapPost("/player/pause", async () => await player.Pause())
+            .WithDescription("Pauses the currently playing song");
+        app.MapPost("/player/stop", async () => await player.Stop())
+            .WithDescription("Stops the currently playing song");
 
-        app.MapPost("/player/play/{id}",
-            async (string id) => await player.PlayID(id));
-        app.MapPost("/player/play-file/{filename}",
-            async (string filename) => await player.PlayFile(filename));
+        app.MapPost("/player/play/{id}", async (string id) => await player.PlayID(id))
+            .WithDescription("Plays a song by its song ID");
+        app.MapPost("/player/play-file/{filename}", async (string filename) => await player.PlayFile(filename))
+            .WithDescription("Plays a song by its filename");
 
-        app.MapGet("/player/volume",
-            async () => await player.GetVolume());
+        app.MapGet("/player/volume", async () => await player.GetVolume())
+            .WithDescription("Gets WinAMP's current volume as a float between 0 and the configured max volume");
         app.MapPut("/player/volume/{level:float}", async Task (float level) =>
-        {
-            if (level is < 0 or > 1)
-                throw new BadHttpRequestException("player volume level must be between 0 and 1");
-            await player.SetVolume(level);
-        });
+            {
+                if (level is < 0 or > 1)
+                    throw new BadHttpRequestException("player volume level must be between 0 and 1");
+                await player.SetVolume(level);
+            })
+            .WithDescription("Sets WinAMP's volume. Note that the passed-in parameter goes from 0 to 1, " +
+                             "and gets internally scaled to match the range 0 to the configured max volume.");
 
-        app.MapGet("/player/position",
-            async () => await player.GetPosition());
+        app.MapGet("/player/position", async () => await player.GetPosition())
+            .WithDescription("Gets WinAMP's current playing position as a float ranging from 0 to 1");
         app.MapPut("/player/position/{pos:float}", async Task (float pos) =>
-        {
-            if (pos is < 0 or > 1)
-                throw new BadHttpRequestException("player seek position must be between 0 and 1");
-            await player.SetPosition(pos);
-        });
+            {
+                if (pos is < 0 or > 1)
+                    throw new BadHttpRequestException("player seek position must be between 0 and 1");
+                await player.SetPosition(pos);
+            })
+            .WithDescription("Sets WinAMP's current position as a float ranging from 0 to 1");
     }
 }
