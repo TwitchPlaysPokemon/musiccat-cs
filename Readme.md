@@ -68,4 +68,4 @@ To uninstall the service (requires Powershell 6+):
 ## API Endpoints
 
 To see the API documentation, please see the OpenAPI specification [api-spec.json](api-spec.json).
-You may use online tools to parse and visualize them for you, e.g. [ReDoc](https://redocly.github.io/redoc/?url=https://github.com/TwitchPlaysPokemon/musiccat-cs/blob/master/api-spec.json)
+You may use online tools to parse and visualize them for you, e.g. [ReDoc](https://redocly.github.io/redoc/?url=https://raw.githubusercontent.com/TwitchPlaysPokemon/musiccat-cs/refs/heads/master/api-spec.json)
