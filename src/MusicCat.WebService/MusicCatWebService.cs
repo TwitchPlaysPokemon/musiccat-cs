@@ -1,68 +1,22 @@
-﻿using System.Text.Json;
-using System.Text.Json.Serialization;
-using MusicCat.Model;
+﻿using MusicCat.Model;
 using MusicCat.Players;
 
 namespace MusicCat.WebService;
 
 public static class MusicCatWebService
 {
-    public static WebApplication BuildWebApplication(string[] args)
+    public static MusicLibrary GetMusicLibrary(ILogger<MusicLibrary> logger, Config config)
     {
-        var builder = WebApplication.CreateBuilder(args);
-        builder.Services.AddWindowsService(options => options.ServiceName = "MusicCat");
-
-        var config = Config.LoadFromConfiguration(builder.Configuration);
-
-        builder.Logging.ClearProviders();
-        builder.Logging.AddConsole();
-        var loggingConfig = builder.Configuration.GetSection("Logging");
-        if (loggingConfig.Exists()) 
-            builder.Logging.AddConfiguration(loggingConfig);
-        var fileLoggingPath = builder.Configuration.GetValue<string>("Logging:LogFilePath");
-        if (!string.IsNullOrEmpty(fileLoggingPath))
-        {
-            builder.Logging.AddFile(
-                pathFormat: Path.Combine(fileLoggingPath, "musiccat-{Date}.log"),
-                outputTemplate: "{Timestamp:o} [{Level:u3}] {Message}{NewLine}{Exception}");
-        }
-        else
-        {
-            Console.Error.WriteLine("no logging path is configured, logs will only be printed to console");
-        }
-
-        builder.Services.AddEndpointsApiExplorer();
-        builder.Services.AddSwaggerGen();
-
-        builder.Services.ConfigureHttpJsonOptions(options =>
-        {
-            // Enums as lowercase strings, so e.g. SongType.Betting becomes "betting".
-            options.SerializerOptions.Converters.Add(new JsonStringEnumConverter(
-                namingPolicy: JsonNamingPolicy.SnakeCaseLower, allowIntegerValues: false));
-        });
-
-        WebApplication app = builder.Build();
-
-        app.UseSwagger();
-        app.UseSwaggerUI();
-        // make swagger-ui our index page since we're just a web service anyway
-        app.MapGet("/", () => Results.Redirect("/swagger"));
-
         var musicLibrary = new MusicLibrary(
-            app.Services.GetService<ILogger<MusicLibrary>>()!,
+            logger,
             musiclibraryPath: config.MusicBaseDir!, // TODO should not be nullable
             songfilesPath: config.SongFileDir);
         var loadTask = musicLibrary.Load(); // Start loading asynchronously, we don't need to wait for this to finish.
-        loadTask.ContinueWith(task => // But if it fails, we want to know about it
+        _ = loadTask.ContinueWith(task => // But if it fails, we want to know about it
         {
-            if (task.IsFaulted) app.Logger.LogError(task.Exception, "Music Library load faulted");
+            if (task.IsFaulted) logger.LogError(task.Exception, "Music Library load faulted");
         });
-
-        AddMusicCatEndpoints(musicLibrary, app);
-        IPlayer player = new AjaxAMP(config.AjaxAMP, config.WinampPath, config.SongFileDir, musicLibrary);
-        AddPlayerEndpoints(player, app);
-
-        return app;
+        return musicLibrary;
     }
 
     public static void AddMusicCatEndpoints(MusicLibrary musicLibrary, WebApplication app)
