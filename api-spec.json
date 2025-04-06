@@ -1,0 +1,290 @@
+{
+  "openapi": "3.0.4",
+  "info": {
+    "title": "MusicCat.WebService",
+    "version": "v1"
+  },
+  "paths": {
+    "/": {
+      "get": {
+        "tags": [
+          "MusicCat.WebService, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/musiclibrary/verify": {
+      "get": {
+        "tags": [
+          "MusicCat.WebService, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+        ],
+        "description": "Like /reload, but a dry-run. So it just returns all problems that would occur",
+        "parameters": [
+          {
+            "name": "reportUnusedSongFiles",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/musiclibrary/reload": {
+      "post": {
+        "tags": [
+          "MusicCat.WebService, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+        ],
+        "description": "Reloads the entire music library from disk, returning all problems that occurred",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/musiclibrary/count": {
+      "get": {
+        "tags": [
+          "MusicCat.WebService, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+        ],
+        "description": "Counts all currently enabled songs in the library, optionally filtered to one type",
+        "parameters": [
+          {
+            "name": "category",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/player/launch": {
+      "post": {
+        "tags": [
+          "MusicCat.WebService, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+        ],
+        "description": "Launches WinAMP, if not already running",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/player/play": {
+      "post": {
+        "tags": [
+          "MusicCat.WebService, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+        ],
+        "description": "Starts or resumes playing the current song",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/player/pause": {
+      "post": {
+        "tags": [
+          "MusicCat.WebService, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+        ],
+        "description": "Pauses the currently playing song",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/player/stop": {
+      "post": {
+        "tags": [
+          "MusicCat.WebService, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+        ],
+        "description": "Stops the currently playing song",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/player/play/{id}": {
+      "post": {
+        "tags": [
+          "MusicCat.WebService, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+        ],
+        "description": "Plays a song by its song ID",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/player/play-file/{filename}": {
+      "post": {
+        "tags": [
+          "MusicCat.WebService, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+        ],
+        "description": "Plays a song by its filename",
+        "parameters": [
+          {
+            "name": "filename",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/player/volume": {
+      "get": {
+        "tags": [
+          "MusicCat.WebService, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+        ],
+        "description": "Gets WinAMP's current volume as a float between 0 and the configured max volume",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "number",
+                  "format": "float"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/player/volume/{level}": {
+      "put": {
+        "tags": [
+          "MusicCat.WebService, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+        ],
+        "description": "Sets WinAMP's volume. Note that the passed-in parameter goes from 0 to 1, and gets internally scaled to match the range 0 to the configured max volume.",
+        "parameters": [
+          {
+            "name": "level",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "float"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/player/position": {
+      "get": {
+        "tags": [
+          "MusicCat.WebService, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+        ],
+        "description": "Gets WinAMP's current playing position as a float ranging from 0 to 1",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "number",
+                  "format": "float"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/player/position/{pos}": {
+      "put": {
+        "tags": [
+          "MusicCat.WebService, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+        ],
+        "description": "Sets WinAMP's current position as a float ranging from 0 to 1",
+        "parameters": [
+          {
+            "name": "pos",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "float"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    }
+  },
+  "components": { }
+}
