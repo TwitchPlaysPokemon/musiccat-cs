@@ -13,7 +13,7 @@ public class MusicLibrary(
     // This way MusicCat boots faster and can immediately start serving requests.
     // Acceptable downside: Every operation is async and may wait until the metadata is loaded.
     private TaskCompletionSource<IDictionary<string, Song>> _songs = new();
-    
+
     /// Loads the music library.
     /// If it was already loaded, removes the currently loaded data and loads again from disk.
     public async Task<IList<string>> Load()
@@ -70,5 +70,50 @@ public class MusicLibrary(
     {
         var songsDict = await _songs.Task;
         return songsDict.TryGetValue(id, out var song) ? song : null;
+    }
+
+    public async Task<IEnumerable<Song>> List(SongType? songType)
+    {
+        var songsDict = await _songs.Task;
+        return songType != null
+            ? songsDict.Values.Where(song => song.Types.Contains(songType.Value))
+            : songsDict.Values;
+    }
+
+    public record SearchResult(Song Song, float MatchRatio);
+
+    public async Task<List<SearchResult>> Search(
+        string[] keywords,
+        string? requiredTag = null,
+        int limit = 100,
+        float cutoff = 0.3f)
+    {
+        keywords = keywords.Select(k => k.ToLowerInvariant()).ToArray();
+        var songsDict = await _songs.Task;
+        // It might sound a bit wasteful to iterate over the entire library for each search,
+        // but this just takes a couple of hundred milliseconds at most, so it's good enough.
+        // This could be improved by e.g. building a trigram index or something I suppose. 
+        return songsDict.Values
+            .AsParallel()
+            .Where(song => requiredTag == null || (song.Tags != null && song.Tags.Any(tag => keywords.Contains(tag))))
+            .Select(song =>
+            {
+                string[] keywordsSong = song.Title.ToLowerInvariant().Split(' ');
+                string[] keywordsGame = song.Game.Title.ToLowerInvariant().Split(' ');
+
+                float matchRatio = keywords.Average(keyword =>
+                {
+                    float ratioSong = keywordsSong.Length == 0 ? 0 : keywordsSong.Max(keyword.LevenshteinRatio);
+                    float ratioGame = keywordsGame.Length == 0 ? 0 : keywordsGame.Max(keyword.LevenshteinRatio);
+
+                    return Math.Max(ratioSong, ratioGame * 0.9f);
+                });
+
+                return new SearchResult(song, matchRatio);
+            })
+            .Where(match => match.MatchRatio >= cutoff)
+            .OrderByDescending(x => x.MatchRatio)
+            .Take(limit)
+            .ToList();
     }
 }

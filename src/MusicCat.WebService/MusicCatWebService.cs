@@ -46,6 +46,27 @@ public static class MusicCatWebService
                 return await musicLibrary.Count(songType);
             }).WithDescription("Counts all currently enabled songs in the library, optionally filtered to one type")
             .WithOpenApi();
+
+        app.MapGet("/musiclibrary/songs/{id}", async (string id) => await musicLibrary.Get(id))
+            .WithDescription("Finds a song by its ID, returning null if not found")
+            .WithOpenApi();
+
+        app.MapGet("/musiclibrary/songs", async (string? category) =>
+            {
+                if (category == null)
+                    return await musicLibrary.List(null);
+                if (!Enum.TryParse(category, ignoreCase: true,
+                        out SongType songType)) // parse manually for case-insensitivity
+                    throw new BadHttpRequestException("Unrecognized song type: " + category);
+                return await musicLibrary.List(songType);
+            })
+            .WithDescription("Returns all currently enabled songs in the library, optionally filtered to one type")
+            .WithOpenApi();
+
+        app.MapGet("/musiclibrary/search", async (string[] keywords, string? requiredTag, int limit = 100) =>
+                await musicLibrary.Search(keywords, requiredTag, limit))
+            .WithDescription("Searches through songs in the library, returning them ordered by relevance descending")
+            .WithOpenApi();
     }
 
     public static void AddPlayerEndpoints(IPlayer player, WebApplication app)
