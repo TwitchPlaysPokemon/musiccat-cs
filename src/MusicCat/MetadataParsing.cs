@@ -149,6 +149,8 @@ public partial class MetadataParsing
         string context = "game";
         string gameId = GetAs<string>(gameYaml, "id", context);
         string gameTitle = GetAs<string>(gameYaml, "title", context);
+        if (string.IsNullOrWhiteSpace(gameTitle))
+            throw new ArgumentException($"Game title of game {gameId} must not be empty");
         string[] platforms = GetAsEnumerable<string>(gameYaml, "platform", context).ToArray();
         int? year = GetAsYearMaybeUnreleased(gameYaml);
         string[]? series = GetAsEnumerableOptional<string>(gameYaml, "series", context)?.ToArray();
@@ -174,6 +176,8 @@ public partial class MetadataParsing
             throw new ArgumentException($"Unknown fields in song {songId}: " + string.Join(", ", unknownSongKeys));
 
         string songTitle = GetAs<string>(songYaml, "title", context);
+        if (string.IsNullOrWhiteSpace(songTitle))
+            throw new ArgumentException($"Song title of song {songId} must not be empty");
         HashSet<SongType> types = GetAsEnumerable<string>(songYaml, "type", context).Select(ParseSongType).ToHashSet();
         ISet<TimeSpan>? ends = GetAsEnumerableOptional<string>(songYaml, "ends", context)
             ?.Select(MinutesSecondsStringToTimeSpan).ToHashSet();
