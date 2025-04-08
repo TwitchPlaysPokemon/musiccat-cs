@@ -10,6 +10,8 @@ var builder = WebApplication.CreateBuilder(args);
 // Makes it possible to install and run MusicCat as a Windows Service
 builder.Services.AddWindowsService(options => options.ServiceName = "MusicCat");
 
+builder.Services.AddResponseCompression();
+
 // Our application specific configuration lives in the regular appsettings.json under "MusicCat".
 var config = Config.LoadFromConfiguration(builder.Configuration);
 
@@ -39,6 +41,8 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 WebApplication app = builder.Build();
+
+app.UseResponseCompression();
 
 app.UseSwagger();
 app.UseSwaggerUI();
