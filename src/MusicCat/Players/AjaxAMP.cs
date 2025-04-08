@@ -14,7 +14,7 @@ public class AjaxAMP(AjaxAMPConfig config, string winampPath, string songFilePat
 		BaseAddress = new Uri(config.BaseUrl)
 	};
 	private Process _winAmp;
-	private readonly float _maxVolume = config.MaxVolume;
+	public float MaxVolume => config.MaxVolume;
 
 	private Task<string> SendCommand(string command, Dictionary<string, string> args = null, bool post = false)
 	{
@@ -33,7 +33,7 @@ public class AjaxAMP(AjaxAMPConfig config, string winampPath, string songFilePat
 
 	public async Task<float> GetPosition() => float.Parse(await Get("getposition"));
 
-	public async Task<float> GetVolume() => float.Parse(await Get("getvolume")) / 255f * _maxVolume;
+	public async Task<float> GetVolume() => float.Parse(await Get("getvolume")) / 255f * MaxVolume;
 
 	private async Task<ConsoleStatus> GetStatus()
 	{
@@ -127,7 +127,7 @@ public class AjaxAMP(AjaxAMPConfig config, string winampPath, string songFilePat
 
 	public async Task SetVolume(float level)
 	{
-		await Post("setvolume", new Dictionary<string, string> { ["level"] = (level / _maxVolume * 255f).ToString() });
+		await Post("setvolume", new Dictionary<string, string> { ["level"] = (level / MaxVolume * 255f).ToString() });
 	}
 
 	public Task Stop() => Post("stop");

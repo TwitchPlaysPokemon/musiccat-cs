@@ -36,6 +36,14 @@ public interface IPlayer
 	Task<float> GetVolume();
 
 	/// <summary>
+	/// Gets music player's configured max volume.
+	/// This may e.g. be "2.0" if MusicCat is configured to a maximum volume to 2.0.
+	/// This is useful so "1.0"/100% can be the default, but silent songs can be cranked up beyond that.
+	/// </summary>
+	/// <returns>max</returns>
+	float MaxVolume { get; }
+
+	/// <summary>
 	/// Tells the music player to play a file
 	/// </summary>
 	/// <param name="filename">Absolute path of file</param>

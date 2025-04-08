@@ -1,4 +1,5 @@
-﻿using MusicCat.Model;
+﻿using Microsoft.AspNetCore.Mvc;
+using MusicCat.Model;
 using MusicCat.Players;
 
 namespace MusicCat.WebService;
@@ -65,18 +66,17 @@ public static class MusicCatWebService
 
         app.MapGet("/player/volume", async () => await player.GetVolume())
             .WithDescription("Gets WinAMP's current volume as a float between 0 and the configured max volume");
-        app.MapPut("/player/volume/{level:float}", async Task (float level) =>
+        app.MapPut("/player/volume", async Task ([FromBody] float level) =>
             {
-                if (level is < 0 or > 1)
-                    throw new BadHttpRequestException("player volume level must be between 0 and 1");
+                if (level < 0 || level > player.MaxVolume)
+                    throw new BadHttpRequestException("player volume level must be between 0 and " + player.MaxVolume);
                 await player.SetVolume(level);
             })
-            .WithDescription("Sets WinAMP's volume. Note that the passed-in parameter goes from 0 to 1, " +
-                             "and gets internally scaled to match the range 0 to the configured max volume.");
+            .WithDescription("Sets WinAMP's volume to a value between 0 and the configured max volume");
 
         app.MapGet("/player/position", async () => await player.GetPosition())
             .WithDescription("Gets WinAMP's current playing position as a float ranging from 0 to 1");
-        app.MapPut("/player/position/{pos:float}", async Task (float pos) =>
+        app.MapPut("/player/position", async Task ([FromBody] float pos) =>
             {
                 if (pos is < 0 or > 1)
                     throw new BadHttpRequestException("player seek position must be between 0 and 1");
