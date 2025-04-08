@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Fastenshtein;
+using Microsoft.Extensions.Logging;
 using MusicCat.Model;
 
 namespace MusicCat;
@@ -89,24 +90,29 @@ public class MusicLibrary(
         float cutoff = 0.3f)
     {
         keywords = keywords.Select(k => k.ToLowerInvariant()).ToArray();
+        var keywordMatchers = keywords
+            .Select(k => new Levenshtein(k))
+            .ToArray();
         var songsDict = await _songs.Task;
         // It might sound a bit wasteful to iterate over the entire library for each search,
         // but this just takes a couple of hundred milliseconds at most, so it's good enough.
         // This could be improved by e.g. building a trigram index or something I suppose. 
         return songsDict.Values
-            .AsParallel()
+            // .AsParallel() // We're using Fastenshtein instances, which are not thread safe, but we're fast anyway!
             .Where(song => requiredTag == null || (song.Tags != null && song.Tags.Any(tag => keywords.Contains(tag))))
             .Select(song =>
             {
                 string[] keywordsSong = song.Title.ToLowerInvariant().Split(' ');
                 string[] keywordsGame = song.Game.Title.ToLowerInvariant().Split(' ');
 
-                float matchRatio = keywords.Average(keyword =>
+                float matchRatio = keywordMatchers.Average(matcher =>
                 {
-                    float ratioSong = keywordsSong.Length == 0 ? 0 : keywordsSong.Max(keyword.LevenshteinRatio);
-                    float ratioGame = keywordsGame.Length == 0 ? 0 : keywordsGame.Max(keyword.LevenshteinRatio);
+                    float similarityPercentageSong = keywordsSong
+                        .Min(kw => 1f - matcher.DistanceFrom(kw) / (float)Math.Max(kw.Length, matcher.StoredLength));
+                    float similarityPercentageGame = keywordsGame
+                        .Min(kw => 1f - matcher.DistanceFrom(kw) / (float)Math.Max(kw.Length, matcher.StoredLength));
 
-                    return Math.Max(ratioSong, ratioGame * 0.9f);
+                    return Math.Max(similarityPercentageSong, similarityPercentageGame * 0.9f);
                 });
 
                 return new SearchResult(song, matchRatio);
