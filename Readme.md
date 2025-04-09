@@ -16,6 +16,8 @@ It is a C# rewrite of [musiccat (Python)](https://github.com/twitchPlaysPokemon/
 
 ## Setup
 
+Once you're set up and running, MusicCat will be reachable at e.g. `http://localhost:7337`. It comes with a Swagger-UI to test stuff out in the browser.
+
 ### Installation
 
 A GitHub workflow automatically builds the service so you don't need to build it yourself.
@@ -37,7 +39,7 @@ If you do want to build MusicCat yourself, follow these steps:
 ### Configuration
 
 You need to put a `appsettings.json` file next to `MusicCat.WebService.exe`.
-The [`appsettings.Development.json`](src/MusicCat.WebService/appsettings.Development.json) file can help as a template.
+The [`appsettings.Development.json`](src/MusicCat.WebService/appsettings.Development.json) file can help as a template. It is advisable to be careful not to expose the service publicly.
 
 ### Running as an Application
 
@@ -58,6 +60,7 @@ To install as a Windows service:
    ./Install-MusicCat-Service.ps1
    ```
 3. Enter the full path to the MusicCat directory when prompted
+4. After successful installation, enable the service in Windows' Service Manager
 
 To uninstall the service (requires Powershell 6+):
 
