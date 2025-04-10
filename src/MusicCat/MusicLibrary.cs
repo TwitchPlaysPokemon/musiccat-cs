@@ -108,9 +108,9 @@ public class MusicLibrary(
                 float matchRatio = keywordMatchers.Average(matcher =>
                 {
                     float similarityPercentageSong = keywordsSong
-                        .Min(kw => 1f - matcher.DistanceFrom(kw) / (float)Math.Max(kw.Length, matcher.StoredLength));
+                        .Max(kw => 1f - matcher.DistanceFrom(kw) / (float)Math.Max(kw.Length, matcher.StoredLength));
                     float similarityPercentageGame = keywordsGame
-                        .Min(kw => 1f - matcher.DistanceFrom(kw) / (float)Math.Max(kw.Length, matcher.StoredLength));
+                        .Max(kw => 1f - matcher.DistanceFrom(kw) / (float)Math.Max(kw.Length, matcher.StoredLength));
 
                     return Math.Max(similarityPercentageSong, similarityPercentageGame * 0.9f);
                 });
