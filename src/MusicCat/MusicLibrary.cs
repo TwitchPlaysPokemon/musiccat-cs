@@ -23,8 +23,9 @@ public class MusicLibrary(
         try
         {
             var loadResult = await MetadataParsing.LoadMetadata(musiclibraryPath, songfilesPath);
-            logger.LogInformation("Loaded {} songs. Metadata loading took {}ms, song file checking took {}ms. " +
-                                  "{} warnings occurred and {} song files appear unused.",
+            logger.LogInformation("Loaded {NumLoaded} songs. Metadata loading took {MetadataLoadTime}ms, " +
+                                  "song file checking took {SongfileCheckingTime}ms. " +
+                                  "{NumWarnings} warnings occurred and {NumUnusedSongfiles} song files appear unused.",
                 loadResult.Songs.Count,
                 loadResult.DurationReadMetadata.TotalMilliseconds, loadResult.DurationReadSongFiles.TotalMilliseconds,
                 loadResult.Warnings.Count, loadResult.UnusedSongFiles.Count);
