@@ -16,7 +16,7 @@ public class AjaxAMP(AjaxAMPConfig config, string winampPath, string songFilePat
 	private Process _winAmp;
 	public float MaxVolume => config.MaxVolume;
 
-	private Task<string> SendCommand(string command, Dictionary<string, string> args = null, bool post = false)
+	private async Task<string> SendCommand(string command, Dictionary<string, string> args = null, bool post = false)
 	{
 		var argsDigest = string.Join("&", (args ?? new Dictionary<string, string>()).Keys.Select(k => $"{Uri.EscapeDataString(k)}={Uri.EscapeDataString(args[k])}"));
 		var request = new HttpRequestMessage(post ? HttpMethod.Post : HttpMethod.Get, command + (post || args == null ? "" : "?" + argsDigest));
@@ -24,7 +24,9 @@ public class AjaxAMP(AjaxAMPConfig config, string winampPath, string songFilePat
 		{
 			request.Content = new StringContent(argsDigest);
 		}
-		return _httpClient.SendAsync(request).Result.Content.ReadAsStringAsync();
+
+		var response = await _httpClient.SendAsync(request);
+		return await response.Content.ReadAsStringAsync();
 	}
 
 	private Task<string> Post(string command, Dictionary<string, string> args = null) => SendCommand(command, args, true);
