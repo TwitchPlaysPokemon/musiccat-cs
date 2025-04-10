@@ -94,21 +94,10 @@ public class AjaxAMP(AjaxAMPConfig config, string winampPath, string songFilePat
 			["title"] = filename
 		});
 
-		float position1 = await GetPosition();
-
-		await Task.Delay(400);
-
-		float position2 = await GetPosition();
-
-		if (position1 == position2)
-			throw new Exception("Failed to play given file.");
-
-		await Task.Delay(1000);
-
 		ConsoleStatus status = await GetStatus();
-		Console.WriteLine(status.Title);
-		if (status.Filename != filename)
-			throw new Exception($"Failed to play given file. Filename: {status.Title}");
+		if (status.Filename != fullPath)
+			throw new Exception("Check after playing file violated: Unexpected file playing: " +
+			                    $"Expected '{fullPath}' but WinAMP reported '{status.Filename}'");
 	}
 
 	/// <summary>
