@@ -119,6 +119,7 @@ public class MusicLibrary(
             })
             .Where(match => match.MatchRatio >= cutoff)
             .OrderByDescending(x => x.MatchRatio)
+            .ThenBy(x => x.Song.Title) // make order deterministic for ratio ties: just sort alphabetically
             .Take(limit)
             .ToList();
     }
