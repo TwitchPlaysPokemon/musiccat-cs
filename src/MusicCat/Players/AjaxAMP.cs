@@ -140,6 +140,6 @@ public class AjaxAMP(AjaxAMPConfig config, string winampPath, string songFilePat
 
 public class AjaxAMPConfig
 {
-	public string BaseUrl { get; init; } = "http://localhost:5151/";
+	public string BaseUrl { get; init; } = "http://127.0.0.1:5151/";
 	public float MaxVolume { get; init; } = 2.0f;
 }
