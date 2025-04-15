@@ -74,12 +74,20 @@ public class MusicLibrary(
         return songsDict.TryGetValue(id, out var song) ? song : null;
     }
 
-    public async Task<IEnumerable<Song>> List(SongType? songType)
+    public async Task<IEnumerable<Song>> List(SongType? songType, string? gameId, string? tag, int? sample)
     {
         var songsDict = await _songs.Task;
-        return songType != null
-            ? songsDict.Values.Where(song => song.Types.Contains(songType.Value))
-            : songsDict.Values;
+        var resultEnumerable = songsDict.Values.AsEnumerable();
+        if (songType != null)
+            resultEnumerable = resultEnumerable.Where(song => song.Types.Contains(songType.Value));
+        if (gameId != null)
+            resultEnumerable = resultEnumerable.Where(song => song.Game.Id == gameId);
+        if (tag != null)
+            resultEnumerable = resultEnumerable.Where(song => song.Tags != null && song.Tags.Contains(tag));
+        
+        return sample == null 
+            ? resultEnumerable
+            : new Random().GetItems(resultEnumerable.ToArray(), length: sample.Value);
     }
 
     public record SearchResult(Song Song, float MatchRatio);

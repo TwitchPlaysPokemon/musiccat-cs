@@ -120,13 +120,35 @@
         "tags": [
           "Music Library"
         ],
-        "description": "Returns all currently enabled songs in the library, optionally filtered to one type",
+        "description": "Returns all currently enabled songs in the library, optionally filtered to one type and/or one gameId and/or one tag. If 'sample' is provided, only returns that many songs, chosen at random.",
         "parameters": [
           {
             "name": "category",
             "in": "query",
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "gameId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "tag",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sample",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
             }
           }
         ],
