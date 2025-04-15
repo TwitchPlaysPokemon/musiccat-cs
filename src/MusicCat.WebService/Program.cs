@@ -47,7 +47,8 @@ app.UseResponseCompression();
 app.UseSwagger();
 app.UseSwaggerUI();
 // make swagger-ui our index page since we're just a web service anyway
-app.MapGet("/", () => Results.Redirect("/swagger"));
+app.MapGet("/", () => Results.Redirect("/swagger"))
+    .ExcludeFromDescription(); // avoid this becoming a documented official endpoint
 
 var musicLibrary = MusicCatWebService.GetMusicLibrary(app.Services.GetService<ILogger<MusicLibrary>>()!, config);
 

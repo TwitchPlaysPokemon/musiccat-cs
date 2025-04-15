@@ -22,19 +22,21 @@ public static class MusicCatWebService
 
     public static void AddMusicCatEndpoints(MusicLibrary musicLibrary, WebApplication app)
     {
+        const string tag = "Music Library";
+
         app.MapGet("/musiclibrary/verify", async (bool reportUnusedSongFiles = false) =>
             {
                 IList<string> warnings = await musicLibrary.Verify(reportUnusedSongFiles);
                 return string.Join('\n', warnings);
             }).WithDescription("Like /reload, but a dry-run. So it just returns all problems that would occur")
-            .WithOpenApi();
+            .WithOpenApi().WithTags(tag);
 
         app.MapPost("/musiclibrary/reload", async () =>
             {
                 IList<string> warnings = await musicLibrary.Load();
                 return string.Join('\n', warnings);
             }).WithDescription("Reloads the entire music library from disk, returning all problems that occurred")
-            .WithOpenApi();
+            .WithOpenApi().WithTags(tag);
 
         app.MapGet("/musiclibrary/count", async (string? category) =>
             {
@@ -45,11 +47,11 @@ public static class MusicCatWebService
                     throw new BadHttpRequestException("Unrecognized song type: " + category);
                 return await musicLibrary.Count(songType);
             }).WithDescription("Counts all currently enabled songs in the library, optionally filtered to one type")
-            .WithOpenApi();
+            .WithOpenApi().WithTags(tag);
 
         app.MapGet("/musiclibrary/songs/{id}", async (string id) => await musicLibrary.Get(id))
             .WithDescription("Finds a song by its ID, returning null if not found")
-            .WithOpenApi();
+            .WithOpenApi().WithTags(tag);
 
         app.MapGet("/musiclibrary/songs", async (string? category) =>
             {
@@ -61,48 +63,50 @@ public static class MusicCatWebService
                 return await musicLibrary.List(songType);
             })
             .WithDescription("Returns all currently enabled songs in the library, optionally filtered to one type")
-            .WithOpenApi();
+            .WithOpenApi().WithTags(tag);
 
         app.MapGet("/musiclibrary/search", async (string[] keywords, string? requiredTag, int limit = 100) =>
                 await musicLibrary.Search(keywords, requiredTag, limit))
             .WithDescription("Searches through songs in the library, returning them ordered by relevance descending")
-            .WithOpenApi();
+            .WithOpenApi().WithTags(tag);
     }
 
     public static void AddPlayerEndpoints(IPlayer player, WebApplication app)
     {
+        const string tag = "Player";
+
         app.MapPost("/player/launch", async () => await player.Launch())
-            .WithDescription("Launches WinAMP, if not already running");
+            .WithDescription("Launches WinAMP, if not already running").WithTags(tag);
         app.MapPost("/player/play", async () => await player.Play())
-            .WithDescription("Starts or resumes playing the current song");
+            .WithDescription("Starts or resumes playing the current song").WithTags(tag);
         app.MapPost("/player/pause", async () => await player.Pause())
-            .WithDescription("Pauses the currently playing song");
+            .WithDescription("Pauses the currently playing song").WithTags(tag);
         app.MapPost("/player/stop", async () => await player.Stop())
-            .WithDescription("Stops the currently playing song");
+            .WithDescription("Stops the currently playing song").WithTags(tag);
 
         app.MapPost("/player/play/{id}", async (string id) => await player.PlayID(id))
-            .WithDescription("Plays a song by its song ID");
+            .WithDescription("Plays a song by its song ID").WithTags(tag);
         app.MapPost("/player/play-file/{filename}", async (string filename) => await player.PlayFile(filename))
-            .WithDescription("Plays a song by its filename");
+            .WithDescription("Plays a song by its filename").WithTags(tag);
 
         app.MapGet("/player/volume", async () => await player.GetVolume())
-            .WithDescription("Gets WinAMP's current volume as a float between 0 and the configured max volume");
+            .WithDescription("Gets WinAMP's current volume as a float between 0 and the configured max volume").WithTags(tag);
         app.MapPut("/player/volume", async Task ([FromBody] float level) =>
             {
                 if (level < 0 || level > player.MaxVolume)
                     throw new BadHttpRequestException("player volume level must be between 0 and " + player.MaxVolume);
                 await player.SetVolume(level);
             })
-            .WithDescription("Sets WinAMP's volume to a value between 0 and the configured max volume");
+            .WithDescription("Sets WinAMP's volume to a value between 0 and the configured max volume").WithTags(tag);
 
         app.MapGet("/player/position", async () => await player.GetPosition())
-            .WithDescription("Gets WinAMP's current playing position as a float ranging from 0 to 1");
+            .WithDescription("Gets WinAMP's current playing position as a float ranging from 0 to 1").WithTags(tag);
         app.MapPut("/player/position", async Task ([FromBody] float pos) =>
             {
                 if (pos is < 0 or > 1)
                     throw new BadHttpRequestException("player seek position must be between 0 and 1");
                 await player.SetPosition(pos);
             })
-            .WithDescription("Sets WinAMP's current position as a float ranging from 0 to 1");
+            .WithDescription("Sets WinAMP's current position as a float ranging from 0 to 1").WithTags(tag);
     }
 }
