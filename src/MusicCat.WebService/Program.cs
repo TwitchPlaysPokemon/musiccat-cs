@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.OpenApi.Models;
 using MusicCat;
 using MusicCat.Players;
@@ -27,12 +28,14 @@ else
         pathFormat: Path.Combine(fileLoggingPath, "musiccat-{Date}.log"),
         outputTemplate: "{Timestamp:o} [{Level:u3}] {Message}{NewLine}{Exception}");
 
-builder.Services.ConfigureHttpJsonOptions(options =>
-{
-    // Enums as lowercase strings, so e.g. SongType.Betting becomes "betting".
-    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter(
-        namingPolicy: JsonNamingPolicy.SnakeCaseLower, allowIntegerValues: false));
-});
+// Enums as lowercase strings, so e.g. SongType.Betting becomes "betting".
+var jsonStringEnumConverter = new JsonStringEnumConverter(
+    namingPolicy: JsonNamingPolicy.SnakeCaseLower, allowIntegerValues: false);
+builder.Services.ConfigureHttpJsonOptions(options => 
+    options.SerializerOptions.Converters.Add(jsonStringEnumConverter));
+// Needs to be specified a second time to work around https://github.com/domaindrivendev/Swashbuckle.AspNetCore/issues/2293
+builder.Services.Configure<JsonOptions>(options => 
+    options.JsonSerializerOptions.Converters.Add(jsonStringEnumConverter));
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>

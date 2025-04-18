@@ -38,30 +38,18 @@ public static class MusicCatWebService
             }).WithDescription("Reloads the entire music library from disk, returning all problems that occurred")
             .WithOpenApi().WithTags(openapiTag);
 
-        app.MapGet("/musiclibrary/count", async (string? category) =>
-            {
-                if (category == null)
-                    return await musicLibrary.Count(null);
-                if (!Enum.TryParse(category, ignoreCase: true,
-                        out SongType songType)) // parse manually for case-insensitivity
-                    throw new BadHttpRequestException("Unrecognized song type: " + category);
-                return await musicLibrary.Count(songType);
-            }).WithDescription("Counts all currently enabled songs in the library, optionally filtered to one type")
+        app.MapGet("/musiclibrary/count", async (SongType? category) =>
+                await musicLibrary.Count(category))
+            .WithDescription("Counts all currently enabled songs in the library, optionally filtered to one type")
             .WithOpenApi().WithTags(openapiTag);
 
         app.MapGet("/musiclibrary/songs/{id}", async (string id) => await musicLibrary.Get(id))
             .WithDescription("Finds a song by its ID, returning null if not found")
             .WithOpenApi().WithTags(openapiTag);
 
-        app.MapGet("/musiclibrary/songs", async (string? category, string? gameId, string? tag, int? sample) =>
-            {
-                if (category == null)
-                    return await musicLibrary.List(null, gameId, tag, sample);
-                if (!Enum.TryParse(category, ignoreCase: true,
-                        out SongType songType)) // parse manually for case-insensitivity
-                    throw new BadHttpRequestException("Unrecognized song type: " + category);
-                return await musicLibrary.List(songType, gameId, tag, sample);
-            })
+        app.MapGet("/musiclibrary/songs",
+                async (SongType? category, string? gameId, string? tag, int? sample) =>
+                    await musicLibrary.List(category, gameId, tag, sample))
             .WithDescription(
                 "Returns all currently enabled songs in the library, optionally filtered to one type and/or one " +
                 "gameId and/or one tag. If 'sample' is provided, only returns that many songs, chosen at random.")
@@ -92,17 +80,20 @@ public static class MusicCatWebService
             .WithDescription("Plays a song by its filename").WithTags(openapiTag);
 
         app.MapGet("/player/volume", async () => await player.GetVolume())
-            .WithDescription("Gets WinAMP's current volume as a float between 0 and the configured max volume").WithTags(openapiTag);
+            .WithDescription("Gets WinAMP's current volume as a float between 0 and the configured max volume")
+            .WithTags(openapiTag);
         app.MapPut("/player/volume", async Task ([FromBody] float level) =>
             {
                 if (level < 0 || level > player.MaxVolume)
                     throw new BadHttpRequestException("player volume level must be between 0 and " + player.MaxVolume);
                 await player.SetVolume(level);
             })
-            .WithDescription("Sets WinAMP's volume to a value between 0 and the configured max volume").WithTags(openapiTag);
+            .WithDescription("Sets WinAMP's volume to a value between 0 and the configured max volume")
+            .WithTags(openapiTag);
 
         app.MapGet("/player/position", async () => await player.GetPosition())
-            .WithDescription("Gets WinAMP's current playing position as a float ranging from 0 to 1").WithTags(openapiTag);
+            .WithDescription("Gets WinAMP's current playing position as a float ranging from 0 to 1")
+            .WithTags(openapiTag);
         app.MapPut("/player/position", async Task ([FromBody] float pos) =>
             {
                 if (pos is < 0 or > 1)
