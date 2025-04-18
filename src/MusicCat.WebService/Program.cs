@@ -48,7 +48,12 @@ WebApplication app = builder.Build();
 app.UseResponseCompression();
 
 app.UseSwagger();
-app.UseSwaggerUI();
+app.UseSwaggerUI(options =>
+{
+    // If we're visiting the Swagger-UI, we're typically testing stuff.
+    // Having to first click "Try it out" for every operation is just an unnecessary step.
+    options.EnableTryItOutByDefault();
+});
 // make swagger-ui our index page since we're just a web service anyway
 app.MapGet("/", () => Results.Redirect("/swagger"))
     .ExcludeFromDescription(); // avoid this becoming a documented official endpoint
