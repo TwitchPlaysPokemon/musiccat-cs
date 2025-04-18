@@ -3,11 +3,10 @@
 using System.Diagnostics;
 using System.Globalization;
 using System.Xml.Serialization;
-using MusicCat.Model;
 
 namespace MusicCat.Players;
 
-public class AjaxAMP(AjaxAMPConfig config, string winampPath, string songFilePath, MusicLibrary musicLibrary) : IPlayer
+public class AjaxAMP(AjaxAMPConfig config, string winampPath, string songFilePath) : IPlayer
 {
 	private readonly HttpClient _httpClient = new()
 	{
@@ -100,18 +99,6 @@ public class AjaxAMP(AjaxAMPConfig config, string winampPath, string songFilePat
 		if (status.Filename != fullPath)
 			throw new Exception("Check after playing file violated: Unexpected file playing: " +
 			                    $"Expected '{fullPath}' but WinAMP reported '{status.Filename}'");
-	}
-
-	/// <summary>
-	/// Tells the music player to play the song with the specific id
-	/// </summary>
-	/// <param name="id">Id of the song to play</param>
-	/// <returns></returns>
-	public async Task PlayID(string id)
-	{
-		Song song = await musicLibrary.Get(id)
-		            ?? throw new Exception($"Could not find song with id: {id}");
-		await PlayFile(song.Path);
 	}
 
 	public Task SetPosition(float percent) => Post("setposition", new Dictionary<string, string> { ["pos"] = percent.ToString() });

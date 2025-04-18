@@ -61,7 +61,7 @@ public static class MusicCatWebService
             .WithOpenApi().WithTags(openapiTag);
     }
 
-    public static void AddPlayerEndpoints(IPlayer player, WebApplication app)
+    public static void AddPlayerEndpoints(IPlayer player, MusicLibrary musicLibrary, WebApplication app)
     {
         const string openapiTag = "Player";
 
@@ -74,7 +74,12 @@ public static class MusicCatWebService
         app.MapPost("/player/stop", async () => await player.Stop())
             .WithDescription("Stops the currently playing song").WithTags(openapiTag);
 
-        app.MapPost("/player/play/{id}", async (string id) => await player.PlayID(id))
+        app.MapPost("/player/play/{id}", async (string id) =>
+            {
+                Song song = await musicLibrary.Get(id)
+                            ?? throw new BadHttpRequestException("Song not found", 404);
+                await player.PlayFile(song.Path);
+            })
             .WithDescription("Plays a song by its song ID").WithTags(openapiTag);
         app.MapPost("/player/play-file/{filename}", async (string filename) => await player.PlayFile(filename))
             .WithDescription("Plays a song by its filename").WithTags(openapiTag);

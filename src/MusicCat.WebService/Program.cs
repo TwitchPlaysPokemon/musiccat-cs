@@ -64,7 +64,7 @@ var musicLibrary = MusicCatWebService.GetMusicLibrary(app.Services.GetService<IL
 
 MusicCatWebService.AddMusicCatEndpoints(musicLibrary, app);
 
-IPlayer player = new AjaxAMP(config.AjaxAMP, config.WinampPath, config.SongFileDir, musicLibrary);
-MusicCatWebService.AddPlayerEndpoints(player, app);
+IPlayer player = new AjaxAMP(config.AjaxAMP, config.WinampPath, config.SongFileDir);
+MusicCatWebService.AddPlayerEndpoints(player, musicLibrary, app);
 
 app.Run();

@@ -50,12 +50,6 @@ public interface IPlayer
 	Task PlayFile(string filename);
 
 	/// <summary>
-	/// Tells the music player to play the song with a specific ID
-	/// </summary>
-	/// <param name="id">ID of the song to play</param>
-	Task PlayID(string id);
-
-	/// <summary>
 	/// Moves playhead
 	/// </summary>
 	/// <param name="percent">0 to 1</param>
