@@ -27,6 +27,8 @@ public class ConsoleStatus
 	public long LengthMs { get; set; }
 	[XmlElement(ElementName = "bitrate")]
 	public string Bitrate { get; set; }
-	[XmlElement(ElementName = "position")]
-	public float Position { get; set; }
+	// Let's not parse this, as we don't need it and it fails to parse for some songs.
+	// E.g. if we try to play edda_castle, the XML contains "1.#INF", which just doesn't compute.
+	// [XmlElement(ElementName = "position")]
+	// public float Position { get; set; }
 }
