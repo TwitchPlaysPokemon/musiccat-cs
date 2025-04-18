@@ -409,22 +409,25 @@
   "components": {
     "schemas": {
       "Game": {
+        "required": [
+          "id",
+          "isFanwork",
+          "platform",
+          "title"
+        ],
         "type": "object",
         "properties": {
           "id": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "title": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "platform": {
             "type": "array",
             "items": {
               "type": "string"
-            },
-            "nullable": true
+            }
           },
           "year": {
             "type": "integer",
@@ -445,6 +448,10 @@
         "additionalProperties": false
       },
       "SearchResult": {
+        "required": [
+          "matchRatio",
+          "song"
+        ],
         "type": "object",
         "properties": {
           "song": {
@@ -458,23 +465,27 @@
         "additionalProperties": false
       },
       "Song": {
+        "required": [
+          "game",
+          "id",
+          "path",
+          "title",
+          "types"
+        ],
         "type": "object",
         "properties": {
           "id": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "title": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "types": {
             "uniqueItems": true,
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/SongType"
-            },
-            "nullable": true
+            }
           },
           "ends": {
             "uniqueItems": true,
@@ -497,8 +508,7 @@
             "$ref": "#/components/schemas/Game"
           },
           "path": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           }
         },
         "additionalProperties": false
