@@ -63,18 +63,18 @@ public class AjaxAMP(AjaxAMPConfig config, string winampPath, string songFilePat
 		_winAmp = new Process { StartInfo = { FileName = winampPath } };
 		_winAmp.Start();
 
-		bool flag = false;
-		while (!flag)
+		int attemptsLeft = 5;
+		while (attemptsLeft > 0)
 		{
-			try
-			{
-				await Task.Delay(1000);
-				string active = (await GetPosition()).ToString(CultureInfo.InvariantCulture);
-				if (!string.IsNullOrWhiteSpace(active))
-					flag = true;
-			}
-			catch { }
+			await Task.Delay(1000);
+			string active = (await GetPosition()).ToString(CultureInfo.InvariantCulture);
+			if (!string.IsNullOrWhiteSpace(active))
+				break;
+			attemptsLeft--;
 		}
+
+		if (attemptsLeft == 0)
+			throw new Exception("Could not launch Winamp, Launch() worked but could not connect");
 	}
 
 	public Task Pause() => Post("pause");
