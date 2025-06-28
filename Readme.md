@@ -23,6 +23,8 @@ Once you're set up and running, MusicCat will be reachable at e.g. `http://local
 A GitHub workflow automatically builds the service so you don't need to build it yourself.
 You can download the latest artifacts from the [most recent 'build' job on the master branch](https://github.com/TwitchPlaysPokemon/musiccat-cs/actions/workflows/build.yml?query=branch%3Amaster).
 
+If you're not logged into GitHub, you may use [this nightly.link to the latest `MusicCat-win-x64.zip`](https://nightly.link/TwitchPlaysPokemon/musiccat-cs/workflows/build/master/MusicCat-win-x64.zip).
+
 If you do want to build MusicCat yourself, follow these steps:
 
 1. Clone the repository
