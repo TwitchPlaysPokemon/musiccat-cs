@@ -5,6 +5,10 @@ using Microsoft.OpenApi.Models;
 using MusicCat;
 using MusicCat.Players;
 using MusicCat.WebService;
+using MusicCat.WebService.Utils;
+using Serilog;
+using Serilog.Events;
+using Serilog.Sinks.Discord;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,6 +31,15 @@ else
     builder.Logging.AddFile(
         pathFormat: Path.Combine(fileLoggingPath, "musiccat-{Date}.log"),
         outputTemplate: "{Timestamp:o} [{Level:u3}] {Message}{NewLine}{Exception}");
+
+if (config.DiscordLogging != null)
+{
+    builder.Logging.AddSerilog(new LoggerConfiguration()
+        .WriteTo.Discord(config.DiscordLogging.WebhookId,
+            config.DiscordLogging.WebhookToken)
+        .MinimumLevel.Is(config.DiscordLogging.MinLogLevel.ToLogEventLevel() ?? LogEventLevel.Warning)
+        .CreateLogger());
+}
 
 // Enums as lowercase strings, so e.g. SongType.Betting becomes "betting".
 var jsonStringEnumConverter = new JsonStringEnumConverter(
