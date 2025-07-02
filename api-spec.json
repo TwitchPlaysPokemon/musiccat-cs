@@ -10,7 +10,7 @@
         "tags": [
           "Music Library"
         ],
-        "description": "Like /reload, but a dry-run. So it just returns all problems that would occur",
+        "description": "Like /reload, but a dry-run. So it just returns all problems that would occur. Song file checking is case-insensitive on windows and case-sensitive otherwise, unless explicitly set to 'true' or 'false' via the 'caseInsensitive' parameter.",
         "parameters": [
           {
             "name": "reportUnusedSongFiles",
@@ -18,6 +18,13 @@
             "schema": {
               "type": "boolean",
               "default": false
+            }
+          },
+          {
+            "name": "caseInsensitive",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
             }
           }
         ],
@@ -40,7 +47,7 @@
         "tags": [
           "Music Library"
         ],
-        "description": "Reloads the entire music library from disk, returning all problems that occurred",
+        "description": "Reloads the entire music library from disk, returning all problems that occurred. Song file checking is case-insensitive on windows and case-sensitive otherwise.",
         "responses": {
           "200": {
             "description": "OK",
