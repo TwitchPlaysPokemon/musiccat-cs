@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using MusicCat.Model;
 using VYaml.Serialization;
@@ -15,11 +16,21 @@ public record MetadataLoadResult(
 
 public partial class MetadataParsing
 {
+    /// <summary>
+    /// Loads all metadata found in the given path, and returns a <see cref="MetadataLoadResult"/>.
+    /// </summary>
+    /// <param name="musiclibraryPath">Path to the music library (the YAML files)</param>
+    /// <param name="songfilesPath">Path to the song files, or null to default to the music library path.</param>
+    /// <param name="caseInsensitive">Whether file presence checking should be case-insensitive.
+    /// If null (default), it's case-insensitive on windows and case-sensitive otherwise.</param>
+    /// <returns></returns>
     public static async Task<MetadataLoadResult> LoadMetadata(
         string musiclibraryPath,
-        string? songfilesPath = null)
+        string? songfilesPath = null,
+        bool? caseInsensitive = null)
     {
         songfilesPath ??= musiclibraryPath;
+        bool caseSensitive = !(caseInsensitive ?? RuntimeInformation.IsOSPlatform(OSPlatform.Windows));
 
         var warningsCollector = new ConcurrentQueue<string>();
         HashSet<string> existingSongFiles = [];
@@ -33,7 +44,7 @@ public partial class MetadataParsing
                 .EnumerateFiles(songfilesPath, "*", SearchOption.AllDirectories)
                 .Select(f => Path.GetRelativePath(songfilesPath, f));
             foreach (string songFile in songFilePaths)
-                existingSongFiles.Add(songFile);
+                existingSongFiles.Add(caseSensitive ? songFile : songFile.ToLowerInvariant());
             durationReadSongFiles = stopwatch.Elapsed;
         });
         var metadataFilesTask = Task.Run(async () =>
@@ -54,14 +65,14 @@ public partial class MetadataParsing
 
         foreach (Song song in songs)
         {
-            if (!existingSongFiles.Contains(song.Path))
+            if (!existingSongFiles.Contains(caseSensitive ? song.Path : song.Path.ToLowerInvariant()))
             {
                 warningsCollector.Enqueue($"Missing song file: {song.Path}");
                 songsDict.Remove(song.Id);
             }
         }
 
-        var usedSongFiles = songs.Select(s => s.Path).ToHashSet();
+        var usedSongFiles = songs.Select(s => caseSensitive ? s.Path : s.Path.ToLowerInvariant()).ToHashSet();
         HashSet<string> ignoreUnrelated = [".txt", ".png", ".jpg", ".ini", ".sh"];
         HashSet<string> ignoreSoundFonts = [".usflib", ".gsflib", ".2sflib", ".ncsflib"];
         HashSet<string> unusedSongFiles = existingSongFiles

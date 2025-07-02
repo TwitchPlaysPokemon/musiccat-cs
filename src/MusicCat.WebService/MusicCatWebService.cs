@@ -24,18 +24,21 @@ public static class MusicCatWebService
     {
         const string openapiTag = "Music Library";
 
-        app.MapGet("/musiclibrary/verify", async (bool reportUnusedSongFiles = false) =>
+        app.MapGet("/musiclibrary/verify", async (bool reportUnusedSongFiles = false, bool? caseInsensitive = null) =>
             {
-                IList<string> warnings = await musicLibrary.Verify(reportUnusedSongFiles);
+                IList<string> warnings = await musicLibrary.Verify(reportUnusedSongFiles, caseInsensitive);
                 return string.Join('\n', warnings);
-            }).WithDescription("Like /reload, but a dry-run. So it just returns all problems that would occur")
+            }).WithDescription("Like /reload, but a dry-run. So it just returns all problems that would occur. " +
+                               "Song file checking is case-insensitive on windows and case-sensitive otherwise, " +
+                               "unless explicitly set to 'true' or 'false' via the 'caseInsensitive' parameter.")
             .WithOpenApi().WithTags(openapiTag);
 
         app.MapPost("/musiclibrary/reload", async () =>
             {
                 IList<string> warnings = await musicLibrary.Load();
                 return string.Join('\n', warnings);
-            }).WithDescription("Reloads the entire music library from disk, returning all problems that occurred")
+            }).WithDescription("Reloads the entire music library from disk, returning all problems that occurred. " +
+                               "Song file checking is case-insensitive on windows and case-sensitive otherwise.")
             .WithOpenApi().WithTags(openapiTag);
 
         app.MapGet("/musiclibrary/count", async (SongType? category) =>

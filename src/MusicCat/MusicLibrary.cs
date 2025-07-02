@@ -17,6 +17,7 @@ public class MusicLibrary(
 
     /// Loads the music library.
     /// If it was already loaded, removes the currently loaded data and loads again from disk.
+    /// Loads case-insensitive on Windows, and case-sensitive otherwise.
     public async Task<IList<string>> Load()
     {
         _songs = new TaskCompletionSource<IDictionary<string, Song>>();
@@ -42,11 +43,11 @@ public class MusicLibrary(
 
     /// Practically does the same as <see cref="Load"/>, but instead of keeping the loaded data,
     /// just returns any warnings/errors that occurred during loading.
-    public async Task<IList<string>> Verify(bool reportUnusedSongFiles = false)
+    public async Task<IList<string>> Verify(bool reportUnusedSongFiles = false, bool? caseInsensitive = null)
     {
         try
         {
-            var loadResult = await MetadataParsing.LoadMetadata(musiclibraryPath, songfilesPath);
+            var loadResult = await MetadataParsing.LoadMetadata(musiclibraryPath, songfilesPath, caseInsensitive);
             List<string> result = [..loadResult.Warnings];
             if (reportUnusedSongFiles)
                 foreach (string unusedSongFile in loadResult.UnusedSongFiles)
@@ -84,8 +85,8 @@ public class MusicLibrary(
             resultEnumerable = resultEnumerable.Where(song => song.Game.Id == gameId);
         if (tag != null)
             resultEnumerable = resultEnumerable.Where(song => song.Tags != null && song.Tags.Contains(tag));
-        
-        return sample == null 
+
+        return sample == null
             ? resultEnumerable
             : new Random().GetItems(resultEnumerable.ToArray(), length: sample.Value);
     }
