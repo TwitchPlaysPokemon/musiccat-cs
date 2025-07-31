@@ -101,7 +101,7 @@ public partial class MetadataParsing
 
         var songs = new ConcurrentBag<Song>();
 
-        await Parallel.ForEachAsync(metadataFiles, async (filename, cancellationToken) =>
+        await Parallel.ForEachAsync(metadataFiles, async (filename, toggn) =>
         {
             try
             {
