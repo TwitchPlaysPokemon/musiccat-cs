@@ -125,10 +125,17 @@ public class AjaxAMP(AjaxAMPConfig config, string winampPath, string songFilePat
             ["title"] = filename
         });
 
-        ConsoleStatus status = await GetStatus();
-        if (status.Filename != fullPath)
-            throw new Exception("Check after playing file violated: Unexpected file playing: " +
-                                $"Expected '{fullPath}' but WinAMP reported '{status.Filename}'");
+        // The status filename might be longer than the actual file name being played. For example:
+        //   Filename: Super Monkey Ball Musical Monkey Madness\bgm_pg_fight.awb
+        //   Reported: Super Monkey Ball Musical Monkey Madness\bgm_pg_fight.awb|$s=1|.vgmstream
+        // And sometimes it does not return the file name at all. For example:
+        //   Filename: Tail 'Gator\06 Water Level.m3u
+        //   Reported: DMG-TG-USA.gbs::GBS,5,Water Level - Iku Mizutani - Tail 'Gator - ©1991-06 Natsume,1:36,,10
+        // Hence, since I don't know how to do this check properly, let's not do it at all for now.
+        //ConsoleStatus status = await GetStatus();
+        //if (status.Filename != fullPath)
+        //    throw new Exception("Check after playing file violated: Unexpected file playing: " +
+        //                        $"Expected '{fullPath}' but WinAMP reported '{status.Filename}'");
     });
 
     public Task SetPosition(float percent) => AutoLaunchOnFailure(() =>
