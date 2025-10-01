@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <PackageReference Include="Fastenshtein" Version="1.0.10" />
+    <PackageReference Include="Fastenshtein" Version="1.0.11" />
     <PackageReference Include="VYaml" Version="1.2.0" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.8" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="9.0.8" />
