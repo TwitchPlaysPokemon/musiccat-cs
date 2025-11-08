@@ -18,7 +18,7 @@ public class MusicLibrary(
     /// Loads the music library.
     /// If it was already loaded, removes the currently loaded data and loads again from disk.
     /// Loads case-insensitive on Windows, and case-sensitive otherwise.
-    public async Task<IList<string>> Load()
+    public async Task<IList<string>> Load(bool logSongFileWarnings)
     {
         _songs = new TaskCompletionSource<IDictionary<string, Song>>();
         try
@@ -30,6 +30,9 @@ public class MusicLibrary(
                 loadResult.Songs.Count,
                 loadResult.DurationReadMetadata.TotalMilliseconds, loadResult.DurationReadSongFiles.TotalMilliseconds,
                 loadResult.Warnings.Count, loadResult.UnusedSongFiles.Count);
+            if (logSongFileWarnings)
+                foreach (var warning in loadResult.Warnings)
+                    logger.LogWarning(warning);
             _songs.SetResult(loadResult.Songs);
             return loadResult.Warnings;
         }

@@ -12,7 +12,7 @@ public static class MusicCatWebService
             logger,
             musiclibraryPath: config.MusicBaseDir!, // TODO should not be nullable
             songfilesPath: config.SongFileDir);
-        var loadTask = musicLibrary.Load(); // Start loading asynchronously, we don't need to wait for this to finish.
+        var loadTask = musicLibrary.Load(config.LogSongFileWarnings); // Start loading asynchronously, we don't need to wait for this to finish.
         _ = loadTask.ContinueWith(task => // But if it fails, we want to know about it
         {
             if (task.IsFaulted) logger.LogError(task.Exception, "Music Library load faulted");
@@ -20,7 +20,7 @@ public static class MusicCatWebService
         return musicLibrary;
     }
 
-    public static void AddMusicCatEndpoints(MusicLibrary musicLibrary, WebApplication app)
+    public static void AddMusicCatEndpoints(MusicLibrary musicLibrary, WebApplication app, Config config)
     {
         const string openapiTag = "Music Library";
 
@@ -35,7 +35,7 @@ public static class MusicCatWebService
 
         app.MapPost("/musiclibrary/reload", async () =>
             {
-                IList<string> warnings = await musicLibrary.Load();
+                IList<string> warnings = await musicLibrary.Load(config.LogSongFileWarnings);
                 return string.Join('\n', warnings);
             }).WithDescription("Reloads the entire music library from disk, returning all problems that occurred. " +
                                "Song file checking is case-insensitive on windows and case-sensitive otherwise.")

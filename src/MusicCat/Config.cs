@@ -10,6 +10,7 @@ public class Config
 	public string? SongFileDir { get; init; }
 	public string? WinampPath { get; init; }
 	public AjaxAMPConfig AjaxAMP { get; init; } = new();
+	public bool LogSongFileWarnings { get; init; } = true;
 	public DiscordLoggingConfig? DiscordLogging { get; init; } = null;
 
 	public static Config LoadFromConfiguration(IConfiguration configuration)

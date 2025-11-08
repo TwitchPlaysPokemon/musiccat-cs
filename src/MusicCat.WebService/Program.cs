@@ -75,7 +75,7 @@ app.MapGet("/", () => Results.Redirect("/swagger"))
 
 var musicLibrary = MusicCatWebService.GetMusicLibrary(app.Services.GetService<ILogger<MusicLibrary>>()!, config);
 
-MusicCatWebService.AddMusicCatEndpoints(musicLibrary, app);
+MusicCatWebService.AddMusicCatEndpoints(musicLibrary, app, config);
 
 IPlayer player = new AjaxAMP(config.AjaxAMP, config.WinampPath, config.SongFileDir, app.Services.GetService<ILogger<AjaxAMP>>());
 MusicCatWebService.AddPlayerEndpoints(player, musicLibrary, app);
